@@ -1,0 +1,105 @@
+@media print {
+  /* Define márgenes de la página */
+  @page {
+    margin: 20mm;
+  }
+
+  /* Asegura que el body no agregue márgenes extras */
+  body {
+    margin: 0;
+    padding: 0;
+    background: white;
+  }
+
+  /* Centrar el contenedor principal del reporte */
+  .print-wrapper {
+    margin-left: auto;
+    margin-right: auto;
+    width: 90%; /* Puedes ajustar este valor según tus necesidades */
+  }
+
+  /* El resto de tus reglas ya existentes */
+  .print-hidden,
+  .not-print,
+  button[class*="print-hidden"],
+  .download-button,
+  .print-button {
+    display: none !important;
+  }
+
+  .print\:grid-cols-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    width: 100%;
+  }
+
+  .chart-container {
+    height: calc(50vh - 2rem);
+    break-inside: avoid;
+    page-break-inside: avoid;
+    margin-bottom: 2rem;
+  }
+
+  /* Asegura que solo 2 gráficas por página */
+  .question-chart-wrapper:nth-child(2n) {
+    page-break-after: always;
+  }
+
+  .chart-wrapper {
+    height: 300px !important;
+  }
+
+  .recharts-wrapper {
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  .print-container {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .print\:break-inside-avoid {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .print\:h-48 {
+    height: 12rem !important;
+  }
+
+  .recharts-wrapper {
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  .print\:text-2xl {
+    font-size: 1.5rem !important;
+  }
+
+  .print\:text-xl {
+    font-size: 1.25rem !important;
+  }
+
+  .print\:text-base {
+    font-size: 1rem !important;
+  }
+
+  .print\:mb-4 {
+    margin-bottom: 1rem !important;
+  }
+
+  .print\:p-0 {
+    padding: 0 !important;
+  }
+
+  .print\:page-break-before-auto {
+    page-break-before: auto;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
