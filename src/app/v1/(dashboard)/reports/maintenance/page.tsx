@@ -1,153 +1,179 @@
-// app/v1/reports/maintenance/page.tsx
-'use client';
+// filepath: src/app/v1/(dashboard)/reports/maintenance/page.tsx
+"use client";
 
-import { useEffect, useState, useRef, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { useEffect, useState, useRef, useCallback } from "react";
+import Link from "next/link"; // Import Link
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
-
-
-interface MaintenanceReport {
-  id: number;
-  numeroReporte: string;
-  equipo: string;
-  marca?: string;
-  modelo?: string;
-  diagnostico: string;
-  fechaRecibido: string;
-  fechaEntrega?: string;
-  tecnico: string;
-  usuario: { nombre: string }; // Assuming you include user info
-}
-
-interface ReportResponse {
-    reports: MaintenanceReport[];
-    totalCount: number;
-    page: number;
-    pageSize: number;
-}
-
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { MaintenanceReportSkeleton } from "@/components/skeletons/SkeletonsUI";
+import {
+  Clipboard,
+  PenToolIcon as Tool,
+  User,
+  Calendar,
+  Eye,
+} from "lucide-react";
+import { MaintenanceReport, ReportResponse } from "@/types/maintenance";
 
 export default function MaintenanceReportsPage() {
   const [reports, setReports] = useState<MaintenanceReport[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const [totalCount, setTotalCount] = useState(0);
-  const [loading, setLoading] = useState(false); // Track loading state
-  const router = useRouter();
+  const [, setTotalCount] = useState(0); // Still useful for knowing the total, even if not displayed directly
+  const [loading, setLoading] = useState(false);
 
   const observer = useRef<IntersectionObserver | null>(null);
 
-    const lastReportRef = useCallback((node: HTMLDivElement) => {
-        if (loading) return;
-        if (observer.current) observer.current.disconnect();
+  const lastReportRef = useCallback(
+    (node: HTMLDivElement) => {
+      if (loading) return;
+      if (observer.current) observer.current.disconnect();
 
-        observer.current = new IntersectionObserver(entries => {
-            if (entries[0].isIntersecting && hasMore) {
-                setPage(prevPage => prevPage + 1);
-            }
-        });
+      observer.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && hasMore) {
+          setPage((prevPage) => prevPage + 1);
+        }
+      });
 
-        if (node) observer.current.observe(node);
-    }, [loading, hasMore]);
-
-
+      if (node) observer.current.observe(node);
+    },
+    [loading, hasMore]
+  );
 
   useEffect(() => {
-     const pageSize = 10; // Keep this consistent
-     console.log("contador", totalCount);
+    const pageSize = 10;
+    let ignore = false; // Prevent state updates after unmount
+
     async function fetchReports() {
-      setLoading(true); // Set loading to true before fetching
+      setLoading(true);
       try {
-        const res = await fetch(`/api/v1/reports/maintenance?page=${page}&pageSize=${pageSize}`);
+        const res = await fetch(
+          `/api/v1/reports/maintenance?page=${page}&pageSize=${pageSize}`
+        );
         if (!res.ok) {
-            //Handle error
-            console.error("Failed to fetch reports:", await res.text());
-            setLoading(false);
-            return
+          console.error("Failed to fetch reports:", await res.text());
+          return;
         }
         const data: ReportResponse = await res.json();
 
-        setReports(prevReports => [...prevReports, ...data.reports]);
-        setTotalCount(data.totalCount)
-        setHasMore(data.reports.length > 0 && (data.page * data.pageSize) < data.totalCount);
-
+        if (!ignore) {
+          setReports((prevReports) => {
+            // This correctly handles avoiding duplicates:
+            const existingIds = new Set(prevReports.map((r) => r.id));
+            const uniqueNewReports = data.reports.filter(
+              (r) => !existingIds.has(r.id)
+            );
+            return [...prevReports, ...uniqueNewReports];
+          });
+          setTotalCount(data.totalCount); //  Store the total count.
+          setHasMore(
+            data.reports.length > 0 &&
+              data.page * data.pageSize < data.totalCount
+          );
+        }
       } catch (error) {
         console.error("Error fetching reports:", error);
-
-      } finally{
-        setLoading(false); // Set loading to false after fetching
+      } finally {
+        setLoading(false);
       }
     }
-    if(hasMore) {
-         fetchReports();
+
+    if (hasMore) {
+      fetchReports();
     }
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page]); // Fetch reports when page changes
-
-
-   const handleDelete = async (id: number) => {
-    if (!confirm('¿Está seguro de eliminar este reporte?')) return;
-    const res = await fetch(`/api/v1/reports/maintenance/${id}`, {
-      method: 'DELETE'
-    });
-    if (res.ok) {
-        //Optimistically remove the report from the UI
-        setReports(prev => prev.filter(report => report.id !== id));
-
-         //Decrement totalCount
-         setTotalCount(prevCount => Math.max(0, prevCount -1)) //Avoid negative
-
-    } else {
-        //Handle errors
-        console.error("Failed to delete report", await res.text());
-    }
-  };
-
+    return () => {
+      ignore = true; // Prevent updates on unmount
+    };
+  }, [page, hasMore]);
 
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Reportes de Mantenimiento</h1>
-      <Button onClick={() => router.push('/v1/reports/maintenance/create')}>
-        Crear Reporte
-      </Button>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mt-4">
-        {reports.map((report, index) => (
-            <Card key={report.id} ref={index === reports.length -1 ? lastReportRef: null}>
-                <CardHeader>
-                  <CardTitle>{report.numeroReporte}</CardTitle>
-                  <CardDescription>Equipo: {report.equipo}</CardDescription>
-                   {report.marca && <CardDescription>Marca: {report.marca}</CardDescription>}
-                   {report.modelo && <CardDescription>Modelo: {report.modelo}</CardDescription>}
-                </CardHeader>
-                <CardContent>
-                  <p>
-                    <Badge variant="outline">Técnico: {report.tecnico}</Badge>
-                  </p>
-                  <p className="mt-2 text-gray-500">
-                    Fecha Recibido: {format(new Date(report.fechaRecibido), "PPP", { locale: es })}
-                  </p>
-                  {report.fechaEntrega && (
-                    <p className="text-gray-500">
-                      Fecha Entrega: {format(new Date(report.fechaEntrega), "PPP", { locale: es })}
-                    </p>
-                  )}
-
-                </CardContent>
-                <CardFooter className="flex justify-between">
-                    <Button size="sm" variant="outline" onClick={() => router.push(`/v1/reports/maintenance/${report.id}/edit`)}>Editar</Button>
-                    <Button size="sm" variant="destructive" onClick={() => handleDelete(report.id)}>Eliminar</Button>
-                </CardFooter>
-            </Card>
-        ))}
-        {loading && <p>Cargando...</p>}
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold">Reportes de Mantenimiento</h1>
+        <Link href="/v1/reports/maintenance/create">
+          <Button>Crear Reporte</Button>
+        </Link>
       </div>
-       {!hasMore && reports.length > 0 &&  <p className='text-center mt-4'>No hay más reportes que mostrar.</p>}
-       {!reports.length && !loading && <p>No se encontraron reportes.</p>}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {reports.map((report, index) => (
+          <Card
+            key={report.id}
+            ref={index === reports.length - 1 ? lastReportRef : null}
+            className="transition-transform duration-200 hover:scale-[1.02] hover:shadow-lg"
+          >
+            {/*  Remove onClick from the Card itself. */}
+              <CardHeader>
+                <CardTitle className="flex flex-col align-middle gap-2">
+                  <h2 className="text-base font-semibold">
+                    {" "}
+                    {/* Use text-base */}
+                    Mantenimiento{" "}
+                    {report.tipoMantenimiento
+                      .toLowerCase()
+                      .charAt(0)
+                      .toUpperCase() +
+                      report.tipoMantenimiento.toLowerCase().slice(1)}
+                  </h2>
+                  <div className="flex flex-row gap-2 align-middle">
+                    <Clipboard className="w-5 h-5" />
+                    {report.numeroReporte}
+                  </div>
+                </CardTitle>
+                <CardDescription className="flex items-center gap-2 text-sm">
+                  {" "}
+                  {/* Use text-sm */}
+                  <Calendar className="w-4 h-4" />
+                  {format(new Date(report.fechaRegistro), "PPP", {
+                    locale: es,
+                  })}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col gap-2 text-sm">
+                  {" "}
+                  {/* Consistent text size */}
+                  <p className="flex items-center gap-2">
+                    <Tool className="w-4 h-4" />
+                    {report.equipo}
+                  </p>
+                  {report.marca && (
+                    <p className="ml-6">Marca: {report.marca}</p>
+                  )}
+                  {report.modelo && (
+                    <p className="ml-6">Modelo: {report.modelo}</p>
+                  )}
+                  <p className="flex items-center gap-2">
+                    <User className="w-4 h-4" />
+                    <Badge variant="outline">{report.tecnico}</Badge>
+                  </p>
+                </div>
+              </CardContent>
+            <CardFooter className="flex justify-end">
+
+              <Link href={`/v1/reports/maintenance/${report.id}/viewdetail`}>
+                <Button size="sm" variant="secondary">
+                  <Eye className="w-4 h-4 mr-1" /> Ver
+                </Button>
+              </Link>
+            </CardFooter>
+          </Card>
+        ))}
+        {loading && <MaintenanceReportSkeleton />}
+      </div>
+
+      {!reports.length && !loading && <p>No se encontraron reportes.</p>}
     </div>
   );
 }

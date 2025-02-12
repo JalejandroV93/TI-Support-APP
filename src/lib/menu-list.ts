@@ -4,7 +4,6 @@ import {
   
   LayoutGrid,
   LucideIcon,
-  FileText,
   ClipboardCheck,
   Network,
   Tablet,
@@ -43,27 +42,38 @@ export function getMenuList(pathname: string, user: UserPayload | null): Group[]
       menus: [
         {
           href: "/v1/",
-          label: "Dashboard",
+          label: "Inicio",
           icon: LayoutGrid,
-          roles: ['ADMIN', 'COLABORADOR'], // Permitido para todos
-          submenus: []
+          roles: ['ADMIN', 'COLABORADOR'],
         }
       ]
     },
     {
-      groupLabel: "Informes",
+      groupLabel: "Reportes",
       menus: [
         {
-          href: "/v1/reports",  // Ruta base para los informes
-          label: "Informes",
-          icon: FileText,
+          href: "/v1/reports/maintenance",
+          label: "Mantenimiento Equipos",
+          icon: ClipboardCheck,
           roles: ['ADMIN', 'COLABORADOR'],
-          submenus: [
-            { href: "/v1/reports/maintenance", label: "Mantenimiento Equipos", icon: ClipboardCheck },
-            { href: "/v1/reports/network", label: "Red", icon: Network },
-            { href: "/v1/reports/mobile-classrooms", label: "Aulas Móviles", icon: Tablet },
-            { href: "/v1/reports/soporte-en-sitio", label: "Soporte", icon: HeartHandshake },
-          ]
+        },
+        {
+          href: "/v1/reports/network",
+          label: "Red",
+          icon: Network,
+          roles: ['ADMIN', 'COLABORADOR'],
+        },
+        {
+          href: "/v1/reports/mobile-classrooms",
+          label: "Aulas Móviles",
+          icon: Tablet,
+          roles: ['ADMIN', 'COLABORADOR'],
+        },
+        {
+          href: "/v1/reports/soporte-en-sitio",
+          label: "Soporte",
+          icon: HeartHandshake,
+          roles: ['ADMIN', 'COLABORADOR'],
         }
       ]
     }

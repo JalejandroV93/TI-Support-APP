@@ -13,21 +13,20 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 // 1. Modelo de Usuarios
 model Usuario {
-  id                  Int                  @id @default(autoincrement())
-  username            String               @unique
+  id                  Int      @id @default(autoincrement())
+  username            String   @unique
   password            String
   nombre              String
-  email               String               @unique
-  phonenumber         String?              // Número de teléfono opcional
+  email               String   @unique
+  phonenumber         String? // Número de teléfono opcional
   rol                 Rol
-  isBlocked           Boolean              @default(false) // Indica bloqueo por intentos fallidos
-  isDisabled          Boolean              @default(false) // Deshabilita el acceso
-  failedLoginAttempts Int                  @default(0)     // Contabiliza los intentos fallidos
-  createdAt           DateTime             @default(now())
-  updatedAt           DateTime             @updatedAt
+  isBlocked           Boolean  @default(false) // Indica bloqueo por intentos fallidos
+  isDisabled          Boolean  @default(false) // Deshabilita el acceso
+  failedLoginAttempts Int      @default(0) // Contabiliza los intentos fallidos
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 
   // Relaciones con los reportes
   soporteReports       SoporteReport[]
@@ -43,49 +42,54 @@ enum Rol {
 
 // 2. Modelo de Categorías de Soporte (flexible para futuros incrementos)
 model SoporteCategoria {
-  id             Int              @id @default(autoincrement())
-  nombre         String           @unique
-  descripcion    String?          // Descripción opcional para dar mayor contexto
+  id          Int     @id @default(autoincrement())
+  nombre      String  @unique
+  descripcion String? // Descripción opcional para dar mayor contexto
 
   soporteReports SoporteReport[]
 }
 
 // 3. Reporte de Soportes (referenciando la tabla de categorías)
 model SoporteReport {
-  id           Int              @id @default(autoincrement())
-  userId       Int
-  categoriaId  Int              // Clave foránea a SoporteCategoria
-  fecha        DateTime         @default(now())
-  descripcion  String           // Descripción del soporte prestado
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  categoriaId Int // Clave foránea a SoporteCategoria
+  fecha       DateTime @default(now())
+  descripcion String // Descripción del soporte prestado
 
-  usuario      Usuario          @relation(fields: [userId], references: [id])
-  categoria    SoporteCategoria @relation(fields: [categoriaId], references: [id])
+  usuario   Usuario          @relation(fields: [userId], references: [id])
+  categoria SoporteCategoria @relation(fields: [categoriaId], references: [id])
 }
 
 // 4. Reporte de Mantenimiento (con mayor detalle del proceso)
 model MantenimientoReport {
-  id              Int      @id @default(autoincrement())
-  numeroReporte   String   @unique @default("RM-") // Ej: RM-0001 (manejar en backend)
-  userId          Int
-  fechaRecibido   DateTime
-  fechaEntrega    DateTime?
-  fechaRegistro   DateTime @default(now())
-  equipo          String
-  marca           String?
-  modelo          String?
-  sistemaOp       String?  @map("sistema_operativo")
-  procesador      String?
-  ram             String?  @map("memoria_ram")
-  ramCantidad     Int?  @map("cantidad_ram")
-  diagnostico     String
-  falla           String?
-  causa           String?
-  solucion        String?
-  observaciones   String?
-  tecnico         String   // Nombre del técnico que realizó el mantenimiento
-  detallesProceso String?
+  id                Int               @id @default(autoincrement())
+  numeroReporte     String            @unique @default("RM-") // Ej: RM-0001 (manejar en backend)
+  userId            Int
+  fechaRecibido     DateTime
+  fechaEntrega      DateTime?
+  fechaRegistro     DateTime          @default(now())
+  equipo            String
+  marca             String?
+  modelo            String?
+  sistemaOp         String?           @map("sistema_operativo")
+  procesador        String?
+  ram               String?           @map("memoria_ram")
+  ramCantidad       Int?              @map("cantidad_ram")
+  tipoMantenimiento TipoMantenimiento
+  diagnostico       String?
+  solucion          String?
+  observaciones     String?
+  tecnico           String // Nombre del técnico que realizó el mantenimiento
+  detallesProceso   String?
 
-  usuario         Usuario  @relation(fields: [userId], references: [id])
+  usuario Usuario @relation(fields: [userId], references: [id])
+}
+
+enum TipoMantenimiento {
+  PREVENTIVO
+  CORRECTIVO
+  OTRO
 }
 
 // 5. Reporte de Red (más abierto para registrar daño, cambio, reparación, etc.)
@@ -93,26 +97,26 @@ model RedReport {
   id          Int      @id @default(autoincrement())
   userId      Int
   fecha       DateTime @default(now())
-  tipo        RedTipo  // Tipo de reporte (daño, cambio, reparación, u otro)
-  descripcion String?  // Detalle breve de la incidencia (sin sobrecargar al colaborador)
+  tipo        RedTipo // Tipo de reporte (daño, cambio, reparación, u otro)
+  descripcion String? // Detalle breve de la incidencia (sin sobrecargar al colaborador)
 
-  usuario     Usuario  @relation(fields: [userId], references: [id])
+  usuario Usuario @relation(fields: [userId], references: [id])
 }
 
 enum RedTipo {
-  DANIO        // Reporte de daño
-  CAMBIO       // Reporte de cambio de equipo/dispositivo
-  REPARACION   // Reporte de reparación
-  OTRO         // Otro tipo de incidencia
+  DANIO // Reporte de daño
+  CAMBIO // Reporte de cambio de equipo/dispositivo
+  REPARACION // Reporte de reparación
+  OTRO // Otro tipo de incidencia
 }
 
 // 6. Reporte de Aulas Móviles
 model AulaMovilReport {
-  id         Int      @id @default(autoincrement())
-  userId     Int
-  fecha      DateTime @default(now())
-  tabletId   String?  // Identificador opcional de la tablet
-  novedades  String   // Descripción de la novedad o incidencia
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  fecha     DateTime @default(now())
+  tabletId  String? // Identificador opcional de la tablet
+  novedades String // Descripción de la novedad o incidencia
 
-  usuario    Usuario  @relation(fields: [userId], references: [id])
+  usuario Usuario @relation(fields: [userId], references: [id])
 }
