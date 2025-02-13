@@ -4,16 +4,8 @@ import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { getCurrentUser } from '@/lib/auth';
 import { UserPayload } from "@/types/user";
-
-// Definición de la interfaz para la entrada de datos al crear o actualizar un usuario
-interface UserInput {
-  username: string;
-  password?: string;
-  nombre: string;
-  email: string;
-  rol: 'ADMIN' | 'COLABORADOR';
-  phonenumber?: string;
-}
+import { Rol } from '@prisma/client'; // Import Rol
+import { z } from "zod";
 
 // Helper para verificar si el usuario es administrador
 const isAdmin = (user: UserPayload | null): boolean => user?.rol === 'ADMIN';
@@ -25,10 +17,27 @@ const parseIdParam = (idParam: string | null): number | null => {
   return isNaN(id) ? null : id;
 };
 
+const createUserSchema = z.object({
+  username: z.string().min(2),
+  nombre: z.string().min(2),
+  email: z.string().email(),
+  password: z.string().min(6),
+  rol: z.nativeEnum(Rol),
+  phonenumber: z.string().optional().nullable(),
+});
+
+const updateUserSchema = z.object({
+  username: z.string().min(2),
+  nombre: z.string().min(2),
+  email: z.string().email(),
+  password: z.string().min(6).optional().nullable(),
+  rol: z.nativeEnum(Rol),
+  phonenumber: z.string().optional().nullable(),
+});
+
 // Obtener todos los usuarios (solo admin)
 export async function GET() {
   const user = await getCurrentUser();
-  //console.log("endpoint usuarios GET", user);
 
   if (!isAdmin(user)) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
@@ -36,7 +45,7 @@ export async function GET() {
 
   try {
     const users = await prisma.usuario.findMany({
-      select: {
+      select: { // Project only the necessary fields
         id: true,
         username: true,
         nombre: true,
@@ -61,26 +70,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
   }
 
-  let data: UserInput;
   try {
-    data = await request.json();
-  } catch (error) {
-    console.error("Error parsing request body:", error);
-    return NextResponse.json({ error: 'Datos inválidos' }, { status: 400 });
-  }
+    const rawData = await request.json();
+    const data = createUserSchema.parse(rawData);  // Validate with Zod
 
-  if (!data.password) {
-    return NextResponse.json({ error: 'La contraseña es obligatoria' }, { status: 400 });
-  }
-
-  try {
     const hashedPassword = await bcrypt.hash(data.password, 10);
     const newUser = await prisma.usuario.create({
       data: {
         ...data,
         password: hashedPassword,
       },
-      select: {
+      select: {  // Select only necessary fields on creation
         id: true,
         username: true,
         nombre: true,
@@ -88,10 +88,14 @@ export async function POST(request: Request) {
       },
     });
     return NextResponse.json(newUser, { status: 201 });
+
   } catch (error: unknown) {
     console.error("Error creating user:", error);
+     if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: "Datos inválidos", details: error.errors }, { status: 400 });
+    }
     if ((error as { code?: string }).code === 'P2002') {
-      return NextResponse.json({ error: 'El nombre de usuario ya existe' }, { status: 400 });
+      return NextResponse.json({ error: 'El nombre de usuario o correo electrónico ya existe' }, { status: 409 });  // 409 Conflict
     }
     return NextResponse.json({ error: 'Error del servidor' }, { status: 500 });
   }
@@ -107,25 +111,29 @@ export async function PUT(request: Request) {
   const { searchParams } = new URL(request.url);
   const idParam = searchParams.get('id');
   const id = parseIdParam(idParam);
+
   if (id === null) {
     return NextResponse.json({ error: 'ID no proporcionado o inválido' }, { status: 400 });
   }
 
-  let data: UserInput;
   try {
-    data = await request.json();
-  } catch (error) {
-    console.error("Error parsing request body:", error);
-    return NextResponse.json({ error: 'Datos inválidos' }, { status: 400 });
-  }
+    const rawData = await request.json();
+    const data = updateUserSchema.parse(rawData); // Validate with Zod!
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const updateData: Record<string, any> = { // Use a Record for dynamic keys
+        ...data,
+    };
 
-  try {
+    if (data.password) {
+        updateData.password = await bcrypt.hash(data.password, 10);
+    } else {
+        delete updateData.password;  // Don't update if password is not provided
+    }
+
+
     const updatedUser = await prisma.usuario.update({
       where: { id },
-      data: {
-        ...data,
-        password: data.password ? await bcrypt.hash(data.password, 10) : undefined,
-      },
+      data: updateData,
       select: {
         id: true,
         username: true,
@@ -136,8 +144,12 @@ export async function PUT(request: Request) {
       },
     });
     return NextResponse.json(updatedUser);
+
   } catch (error) {
     console.error("Error updating user:", error);
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: "Datos inválidos", details: error.errors }, { status: 400 });
+    }
     return NextResponse.json({ error: 'Error actualizando usuario' }, { status: 500 });
   }
 }
@@ -169,8 +181,6 @@ export async function DELETE(request: Request) {
 }
 
 //Activar usuario (solo admin)
-
-
 // Desbloquear usuario (solo admin)
 export async function PATCH(request: Request) {
   const user = await getCurrentUser();

@@ -1,9 +1,11 @@
-import { JWTPayload } from "jose";
+// src/types/user.ts
+import { JWTPayload } from 'jose';
+import { Rol } from '@prisma/client'; // Import Rol
 
 export interface UserPayload extends JWTPayload {
   id: number;
   username: string;
-  rol: "ADMIN" | "COLABORADOR";
+  rol: Rol;
   nombre: string;
   email: string;
   phonenumber?: string | null;

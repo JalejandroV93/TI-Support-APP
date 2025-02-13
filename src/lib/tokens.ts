@@ -1,31 +1,25 @@
-// lib/tokens.ts
-import { SignJWT, jwtVerify } from 'jose';
+import { SignJWT, jwtVerify, JWTVerifyResult } from 'jose';
 import { UserPayload } from '@/types/user';
+import { config } from './config';  // Import config
 
-const secretKey = process.env.AUTH_SECRET;
-if (!secretKey) {
-  throw new Error("AUTH_SECRET is not defined in .env");
-}
+// No need to get secretKey here; use config.authSecret
 
-// Convertir la clave secreta a un Uint8Array
-const secret = new TextEncoder().encode(secretKey);
-
-// Función para crear el token
+// Function to create the token
 export const createToken = async (user: UserPayload): Promise<string> => {
   return await new SignJWT(user)
     .setProtectedHeader({ alg: 'HS256' })
-    .setExpirationTime('1d') // Expira en 1 día (ajusta según necesidad)
-    .sign(secret);
+    .setExpirationTime('1d') // Expires in 1 day
+    .sign(new TextEncoder().encode(config.authSecret)); // Use from config
 };
 
-// Función para verificar el token
+// Function to verify the token
 export const verifyToken = async (token: string): Promise<UserPayload | null> => {
   try {
-    const { payload } = await jwtVerify(token, secret);
-    // Si el token se firmó con el objeto `user`, el payload contendrá las propiedades de UserPayload
-    return payload as unknown as UserPayload;
+    const { payload }: JWTVerifyResult = await jwtVerify(token, new TextEncoder().encode(config.authSecret)); // Use from config
+    return payload as UserPayload;
   } catch (error) {
-    console.error("Error verifying token:", error);
+    console.error('Token verification failed:', error);
+    // No need to re-throw.  Just return null.
     return null;
   }
 };

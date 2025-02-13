@@ -1,0 +1,17 @@
+// src/lib/config.ts
+
+const getEnvVar = (key: string): string => {
+    
+    const value = process.env[key];
+    console.log('key', value);
+    if (!value) {
+      throw new Error(`Missing environment variable: ${key}`);
+    }
+    return value;
+  };
+  
+  export const config = {
+    authSecret: getEnvVar("AUTH_SECRET"),
+    databaseUrl: getEnvVar("DATABASE_URL"),
+    // Add other configuration variables here as needed
+  };

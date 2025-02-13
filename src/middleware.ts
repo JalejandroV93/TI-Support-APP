@@ -7,8 +7,19 @@ const protectedRoutes = ["/v1"]; // Rutas protegidas
 
 export async function middleware(request: NextRequest) {
   const token = request.cookies.get('auth_token')?.value;
-  // Se espera la verificación del token
-  const isLoggedIn = token ? !!(await verifyToken(token)) : false;
+  let isLoggedIn = false; // Initialize to false
+
+  if (token) {
+    try {
+      // Await verifyToken, and handle potential errors gracefully
+      const user = await verifyToken(token);
+      isLoggedIn = !!user; // Check if verification was successful
+    } catch (error) {
+      console.error("Error verifying token in middleware:", error);
+      isLoggedIn = false; // Treat verification errors as not logged in
+    }
+  }
+
   const isProtectedRoute = protectedRoutes.some((route) =>
     request.nextUrl.pathname.startsWith(route)
   );

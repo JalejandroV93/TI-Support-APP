@@ -9,5 +9,3 @@ export async function POST() {
 
 }
 
-// No uses redirect dentro de una API route.  El redirect
-// debe ocurrir en el cliente (ver auth-client.ts).

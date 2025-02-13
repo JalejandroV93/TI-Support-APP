@@ -4,7 +4,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, useAnimation } from "framer-motion";
-//import { signIn, useSession } from "next-auth/react"; // Quitamos next-auth
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -20,6 +19,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Logo } from "@/components/ui/logo";
 import { useAuth } from "@/components/providers/AuthProvider";
+import { loginClient } from "@/lib/auth-client"; // Import loginClient
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -29,66 +29,43 @@ export default function LoginPage() {
   const [isMobile, setIsMobile] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
-  //const { data: session } = useSession(); // Quitamos next-auth
   const controls = useAnimation();
 
-  const { user, refetchUser } = useAuth();
+  const { refetchUser } = useAuth(); // Get refetchUser
 
   useEffect(() => {
-    //if (session) { // Quitamos la comprobación de sesión de next-auth
-    if (user) {
-      router.push("/v1/");
-    }
-  }, [user, router]);
-
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+      if (window.innerWidth < 768) {
+          setIsMobile(true);
+      }
   }, []);
 
   useEffect(() => {
     controls.start({ y: isMobile ? "-25%" : 0 });
   }, [isMobile, controls]);
 
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username, password }),
-      });
+      // Use the loginClient function.
+      await loginClient(username, password);
+      await refetchUser(); //Refetch User
+      router.push("/v1/");  // Redirect *after* successful login
 
-      if (response.ok) {
-        // const data = await response.json(); // Ya no necesitamos el token aquí
-        await refetchUser();
-        router.push("/v1/"); // Redirige al dashboard
-      } else {
-        const errorData = await response.json();
-        toast({
-          variant: "destructive",
-          title: "Error de autenticación",
-          description: errorData.error, // Muestra el mensaje de error del servidor
-        });
-      }
-    } catch (error) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
       console.error("Error en el inicio de sesión:", error);
       toast({
         variant: "destructive",
         title: "Error de autenticación",
-        description: "Ocurrió un error inesperado.",
+        description: error.message, // Display the error message from the API.
       });
     } finally {
       setIsLoading(false);
     }
   };
-
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <motion.div
