@@ -14,7 +14,6 @@ const networkReportUpdateSchema = z
     descripcion: z.string().optional().nullable(),
     dispositivo: z.string().optional().nullable(),
     direccionIP: z.string().optional().nullable(),
-    direccionMAC: z.string().optional().nullable(),
     estado: z.nativeEnum(RedEstado).optional(),
     prioridad: z.nativeEnum(Prioridad).optional(),
     tecnico: z.string().optional().nullable(),
@@ -63,7 +62,6 @@ export async function GET(
       descripcion: true,
       dispositivo: true,
       direccionIP: true,
-      direccionMAC: true,
       estado: true,
       prioridad: true,
       tecnico: true,
@@ -149,7 +147,6 @@ export async function PUT(
         descripcion: data.descripcion === null ? null : data.descripcion,
         dispositivo: data.dispositivo === null ? null : data.dispositivo,
         direccionIP: data.direccionIP === null ? null : data.direccionIP,
-        direccionMAC: data.direccionMAC === null ? null : data.direccionMAC,
         tecnico: data.tecnico === null ? null : data.tecnico,
         notasTecnicas: data.notasTecnicas === null ? null : data.notasTecnicas,
         solucion: data.solucion === null ? null : data.solucion,
@@ -213,5 +210,45 @@ export async function DELETE(
   } catch (error) {
     console.error("Error en DELETE /api/v1/reports/network/[id]:", error);
     return NextResponse.json({ error: "Error interno" }, { status: 500 });
+  }
+}
+
+
+export async function PATCH(request: Request) {
+  const currentUser = await getCurrentUser();
+  if (!currentUser || currentUser.rol !== "ADMIN") { // Typically only admins can update status
+    return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+  }
+
+  const { searchParams } = new URL(request.url);
+  const idParam = searchParams.get("id");
+  if (!idParam) {
+    return NextResponse.json({ error: "ID del reporte no proporcionado" }, { status: 400 });
+  }
+  const reportId = parseInt(idParam, 10);
+  if (isNaN(reportId)) {
+    return NextResponse.json({ error: "ID del reporte inválido" }, { status: 400 });
+  }
+
+  const { estado } = await request.json();
+  if (!estado) {
+    return NextResponse.json({ error: "Estado no proporcionado" }, { status: 400 });
+  }
+
+  // Basic validation that 'estado' is a valid RedEstado enum
+  if (!Object.values(RedEstado).includes(estado as RedEstado)) {
+      return NextResponse.json({ error: "Estado inválido" }, { status: 400 });
+  }
+
+  try {
+    const updatedReport = await prisma.redReport.update({
+      where: { id: reportId },
+      data: { estado: estado as RedEstado }, // Cast to RedEstado
+    });
+
+    return NextResponse.json(updatedReport);
+  } catch (error) {
+    console.error("Error updating network report status:", error);
+    return NextResponse.json({ error: "Error al actualizar el estado del reporte de red" }, { status: 500 });
   }
 }

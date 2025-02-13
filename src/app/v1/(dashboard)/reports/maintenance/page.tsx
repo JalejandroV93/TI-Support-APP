@@ -159,7 +159,7 @@ export default function MaintenanceReportsPage() {
               </CardContent>
               <CardFooter className="flex justify-end">
                 <Link href={`/v1/reports/maintenance/${report.id}/viewdetail`}>
-                  <Button size="sm" variant="secondary" className="bg-red-800 text-white hover:bg-zinc-900">
+                  <Button size="sm" variant="secondary" className="bg-red-700 text-white hover:bg-zinc-900">
                     <Eye className="w-4 h-4 mr-1" /> Ver
                   </Button>
                 </Link>

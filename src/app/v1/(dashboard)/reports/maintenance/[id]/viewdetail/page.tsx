@@ -1,3 +1,4 @@
+// src/app/v1/(dashboard)/reports/maintenance/[id]/viewdetail/page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -27,8 +28,6 @@ import {
   Printer,
   ArrowLeft,
 } from "lucide-react";
-//import { useToast } from "@/hooks/use-toast";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ReportSkeleton } from "@/components/skeletons/SkeletonsUI";
 import { use } from "react";
 import { useMaintenanceReportStore } from "@/store/maintenanceReportStore"; // Import Zustand store
@@ -166,94 +165,82 @@ const ReportDetail = ({ params: paramsPromise }: PageProps) => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="details" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="details">Detalles del Equipo</TabsTrigger>
-              <TabsTrigger value="maintenance">
-                {report.tipoMantenimiento === "CORRECTIVO"
-                  ? "Diagnóstico y Solución"
-                  : "Detalles del Mantenimiento"}
-              </TabsTrigger>
-            </TabsList>
-            <TabsContent value="details">
-              <div className="grid grid-cols-2 gap-4 mt-4">
+          {/* Details Section (No Tabs) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <div>
+              <p className="font-medium">Marca:</p>
+              <p>{report.marca || "N/A"}</p>
+            </div>
+            <div>
+              <p className="font-medium">Modelo:</p>
+              <p>{report.modelo || "N/A"}</p>
+            </div>
+            {["ESCRITORIO", "PORTATIL", "TABLET"].includes(
+              report.tipoEquipo
+            ) && (
+              <>
                 <div>
-                  <p className="font-medium">Marca:</p>
-                  <p>{report.marca || "N/A"}</p>
+                  <p className="font-medium">Sistema Operativo:</p>
+                  <p>{report.sistemaOp || "N/A"}</p>
                 </div>
                 <div>
-                  <p className="font-medium">Modelo:</p>
-                  <p>{report.modelo || "N/A"}</p>
-                </div>
-                {["ESCRITORIO", "PORTATIL", "TABLET"].includes(
-                  report.tipoEquipo
-                ) && (
-                  <>
-                    <div>
-                      <p className="font-medium">Sistema Operativo:</p>
-                      <p>{report.sistemaOp || "N/A"}</p>
-                    </div>
-                    <div>
-                      <p className="font-medium">Procesador:</p>
-                      <p>{report.procesador || "N/A"}</p>
-                    </div>
-                    <div>
-                      <p className="font-medium">RAM:</p>
-                      <p>
-                        {report.ram || "N/A"} - {report.ramCantidad} GB
-                      </p>
-                    </div>
-                  </>
-                )}
-              </div>
-            </TabsContent>
-            <TabsContent value="maintenance">
-              <div className="grid grid-cols-1 gap-4 mt-4">
-                {report.tipoMantenimiento === "CORRECTIVO" ? (
-                  <>
-                    <div>
-                      <p className="font-medium">Diagnóstico:</p>
-                      <p>{report.diagnostico || "N/A"}</p>
-                    </div>
-                    <div>
-                      <p className="font-medium">Solución:</p>
-                      <p>{report.solucion || "N/A"}</p>
-                    </div>
-                  </>
-                ) : (
-                  <div>
-                    <p className="font-medium">Proceso:</p>
-                    <p>{report.detallesProceso || "N/A"}</p>
-                  </div>
-                )}
-                <div>
-                  <p className="font-medium">Técnico:</p>
-                  <Badge variant="outline" className="mt-1">
-                    <User className="w-4 h-4 mr-1" />
-                    {report.tecnico}
-                  </Badge>
+                  <p className="font-medium">Procesador:</p>
+                  <p>{report.procesador || "N/A"}</p>
                 </div>
                 <div>
-                  <p className="font-medium">Fecha de Recibido:</p>
+                  <p className="font-medium">RAM:</p>
                   <p>
-                    {format(new Date(report.fechaRecibido), "PPP", {
-                      locale: es,
-                    })}
+                    {report.ram || "N/A"} - {report.ramCantidad} GB
                   </p>
                 </div>
-                {report.fechaEntrega && (
-                  <div>
-                    <p className="font-medium">Fecha de Entrega:</p>
-                    <p>
-                      {format(new Date(report.fechaEntrega), "PPP", {
-                        locale: es,
-                      })}
-                    </p>
-                  </div>
-                )}
+              </>
+            )}
+
+            {/* Maintenance Details */}
+            {report.tipoMantenimiento === "CORRECTIVO" ? (
+              <>
+                <div>
+                  <p className="font-medium">Diagnóstico:</p>
+                  <p>{report.diagnostico || "N/A"}</p>
+                </div>
+                <div>
+                  <p className="font-medium">Solución:</p>
+                  <p>{report.solucion || "N/A"}</p>
+                </div>
+              </>
+            ) : (
+              <div>
+                <p className="font-medium">Proceso:</p>
+                <p>{report.detallesProceso || "N/A"}</p>
               </div>
-            </TabsContent>
-          </Tabs>
+            )}
+            <div>
+              <p className="font-medium">Técnico:</p>
+              <Badge variant="outline" className="mt-1">
+                <User className="w-4 h-4 mr-1" />
+                {report.tecnico}
+              </Badge>
+            </div>
+            <div>
+              <p className="font-medium">Fecha de Recibido:</p>
+              <p>
+                {format(new Date(report.fechaRecibido), "PPP", {
+                  locale: es,
+                })}
+              </p>
+            </div>
+            {report.fechaEntrega && (
+              <div>
+                <p className="font-medium">Fecha de Entrega:</p>
+                <p>
+                  {format(new Date(report.fechaEntrega), "PPP", {
+                    locale: es,
+                  })}
+                </p>
+              </div>
+            )}
+          </div>
+
           <div className="mt-6">
             <h2 className="text-lg font-semibold mb-2">Observaciones</h2>
             <p>{report.observaciones || "Ninguna observación adicional."}</p>

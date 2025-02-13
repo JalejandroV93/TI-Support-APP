@@ -12,7 +12,6 @@ export interface NetworkReportFormState {
     descripcion?: string | null;
     dispositivo?: string | null;
     direccionIP?: string | null;
-    direccionMAC?: string | null;
     estado: RedEstado;
     prioridad: Prioridad;
     tecnico?: string | null;

@@ -15,7 +15,6 @@ const initialState: NetworkReportFormState = {
     descripcion: "",
     dispositivo: "",
     direccionIP: "",
-    direccionMAC: "",
     estado: "ABIERTO",
     prioridad: "BAJA",
     tecnico: "",

@@ -100,7 +100,7 @@ enum TipoMantenimiento {
 
 // 5. Reporte de Red (más abierto para registrar daño, cambio, reparación, etc.)
 model RedReport {
-  id              Int       @id @default(autoincrement())
+   id              Int       @id @default(autoincrement())
   numeroReporte   String    @unique @default("RR-")
   userId          Int
   fechaRegistro   DateTime  @default(now()) // Fecha de registro del reporte
@@ -110,7 +110,7 @@ model RedReport {
   descripcion     String?   // Detalle breve de la incidencia (sin sobrecargar al colaborador)
   dispositivo     String?   // Ej: Router, Switch, Punto de Acceso, Cableado
   direccionIP     String?   // Si aplica (para dispositivos con IP)
-  direccionMAC    String?   // Si aplica (para dispositivos con MAC)
+  // direccionMAC    String?   // Si aplica (para dispositivos con MAC)  <- REMOVE THIS
   estado          RedEstado // NUEVO: Abierto, En Proceso, Resuelto, Cerrado
   prioridad       Prioridad // NUEVO: Baja, Media, Alta, Urgente
   tecnico         String?   // Nombre del técnico asignado (opcional)

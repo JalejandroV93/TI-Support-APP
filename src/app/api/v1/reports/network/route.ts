@@ -13,7 +13,6 @@ const networkReportInputSchema = z.object({
   descripcion: z.string().optional(),
   dispositivo: z.string().optional(),
   direccionIP: z.string().optional(),
-  direccionMAC: z.string().optional(),
   estado: z.nativeEnum(RedEstado).default("ABIERTO"),
   prioridad: z.nativeEnum(Prioridad),
   tecnico: z.string().optional(),

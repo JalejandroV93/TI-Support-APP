@@ -124,18 +124,7 @@ const NetworkForm: React.FC<NetworkFormProps> = ({
               <p className="text-red-500 text-sm">{errors.direccionIP}</p>
             )}
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="direccionMAC">Dirección MAC</Label>
-            <Input
-              id="direccionMAC"
-              name="direccionMAC"
-              value={form.direccionMAC || ""}
-              onChange={handleChange}
-            />
-            {errors.direccionMAC && (
-              <p className="text-red-500 text-sm">{errors.direccionMAC}</p>
-            )}
-          </div>
+          
           <div className="space-y-2">
             <Label htmlFor="prioridad">Prioridad *</Label>
             <Select
