@@ -54,3 +54,23 @@ export interface MaintenanceReport extends FormState {
     page: number;
     pageSize: number;
 }
+
+
+export interface MaintenanceReportInput {
+  equipo: string;
+  marca?: string;
+  modelo?: string;
+  sistemaOp?: string;
+  procesador?: string;
+  ram?: string;
+  ramCantidad?: number;
+  diagnostico?: string;
+  tipoEquipo?: string;
+  tipoMantenimiento: TipoMantenimiento;
+  solucion?: string;
+  fechaRecibido: string; // ISO string
+  fechaEntrega?: string;
+  tecnico: string;
+  observaciones?: string;
+  detallesProceso?: string;
+}

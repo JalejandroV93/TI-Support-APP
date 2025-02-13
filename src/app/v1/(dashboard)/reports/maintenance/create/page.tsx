@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useAuth } from "@/components/providers/AuthProvider"; // Import useAuth
 import MaintenanceForm from "@/components/maintenance/MaintenanceForm";
-import { FormState, Technician } from "@/types/maintenance";
+import { FormState } from "@/types/maintenance";
+import { useMaintenanceReportStore } from "@/store/maintenanceReportStore"; // Import Zustand store
 
 
 const initialState: FormState = {
@@ -32,27 +33,14 @@ const CreateMaintenanceReport = () => {
     const { user } = useAuth();
     const [form, setForm] = useState<FormState>(initialState);
     const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
-    const [submitError, setSubmitError] = useState<string | null>(null);
+    const [, setSubmitError] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [technicians, setTechnicians] = useState<Technician[]>([]);
     const router = useRouter();
-
+    const { technicians, fetchTechnicians, createReport } = useMaintenanceReportStore();
     useEffect(() => {
-        const fetchTechnicians = async () => {
-            try {
-                const res = await fetch("/api/v1/users/technicians");
-                if (res.ok) {
-                    const data = await res.json();
-                    setTechnicians(data);
-                } else {
-                    console.error("Error al obtener técnicos");
-                }
-            } catch (error) {
-                console.error("Error al obtener técnicos", error);
-            }
-        };
         fetchTechnicians();
-    }, []);
+    }, [fetchTechnicians]);
+
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value, type } = e.target;
@@ -110,37 +98,27 @@ const CreateMaintenanceReport = () => {
             return;
         }
 
-        // const payload: FormState & { userId: string } = {  // Use intersection type
-        //     ...form,
-        //     userId: user.id,
-        // };
 
-        const res = await fetch("/api/v1/reports/maintenance", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(form),
-        });
+        const success = await createReport(form); // Use Zustand action to create report
 
-        if (res.ok) {
+        if (success) {
             router.push("/v1/reports/maintenance");
-            router.refresh();
+            router.refresh(); // Refresh to reflect new data - consider if refresh is needed after optimistic update.
             setForm(initialState); // Reset form after successful submission.
         } else {
-            const errorData = await res.json();
-            setSubmitError(errorData.error || "Error al crear el reporte. Inténtalo de nuevo.");
+            setSubmitError(useMaintenanceReportStore.getState().error || "Error al crear el reporte. Inténtalo de nuevo."); // Get error from Zustand
         }
         setIsSubmitting(false);
     };
 
 
-
     return (
         <div className="container mx-auto p-4 space-y-6">
             <h1 className="text-3xl font-bold">Generar Reporte de Mantenimiento</h1>
-            {submitError && (
+            {useMaintenanceReportStore.getState().error && ( // Get error from Zustand
                 <Alert variant="destructive">
                     <AlertTitle>Error</AlertTitle>
-                    <AlertDescription>{submitError}</AlertDescription>
+                    <AlertDescription>{useMaintenanceReportStore.getState().error}</AlertDescription>
                 </Alert>
             )}
 

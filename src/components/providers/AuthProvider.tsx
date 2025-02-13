@@ -1,8 +1,8 @@
 // app/_components/AuthProvider.tsx
 "use client";
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback  } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { fetchUserClient } from '@/lib/auth-client'; // Importa desde auth-client
+import { fetchUserClient } from '@/lib/auth-client';
 import { UserPayload } from '@/types/user';
 
 
@@ -43,12 +43,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, [pathname, router]);
 
   useEffect(() => {
-    fetchUser();
-  }, [fetchUser, pathname]);
+    if (isLoading && !user) {
+        fetchUser();
+    }
+}, [isLoading, user, fetchUser]);
 
-  const refetchUser = async () => {
-    await fetchUser();
-  };
+const refetchUser = useCallback(async () => {
+  await fetchUser();
+}, [fetchUser]); // Use useCallback for refetchUser
 
   const contextValue: AuthContextProps = {
     user,

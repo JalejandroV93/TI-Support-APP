@@ -11,7 +11,7 @@ interface MaintenanceReportState {
     loading: boolean;
     error: string | null;
     technicians: Technician[];
-    fetchReports: () => Promise<void>;
+    fetchReports: (onFetchComplete: () => void) => Promise<void>;
     createReport: (report: FormState) => Promise<boolean>;
     updateReport: (id: string, report: FormState) => Promise<boolean>;
     deleteReport: (id: string) => Promise<boolean>;
@@ -49,23 +49,27 @@ export const useMaintenanceReportStore = create<MaintenanceReportState>((set, ge
     },
 
 
-    fetchReports: async () => {
-        if (!get().hasMore || get().loading) return;
+    fetchReports: async (onFetchComplete: () => void) => { // Add callback parameter
+        if (!get().hasMore || get().loading) {
+            onFetchComplete(); // Still call the callback even if no fetch occurs
+            return;
+        }
         set({ loading: true, error: null });
         const currentPage = get().page;
         const currentReports = get().reports;
         const pageSize = get().pageSize;
-
+    
         try {
             const res = await fetch(`/api/v1/reports/maintenance?page=${currentPage}&pageSize=${pageSize}`);
             if (!res.ok) {
                 console.error("Failed to fetch reports:", await res.text());
                 set({ loading: false, error: "Failed to fetch reports" });
+                onFetchComplete(); // Call callback on error as well
                 return;
             }
             const data: ReportResponse = await res.json();
             const newReports = data.reports;
-
+    
             set({
                 reports: [...currentReports, ...newReports],
                 hasMore: newReports.length > 0 && (currentPage * pageSize) < data.totalCount,
@@ -76,6 +80,8 @@ export const useMaintenanceReportStore = create<MaintenanceReportState>((set, ge
         } catch (error) {
             console.error("Error fetching reports:", error);
             set({ loading: false, error: "Error fetching reports" });
+        } finally {
+            onFetchComplete(); // Call callback in finally block
         }
     },
 
@@ -157,13 +163,13 @@ export const useMaintenanceReportStore = create<MaintenanceReportState>((set, ge
 
     updateReportInList: (id: string, updatedReport: MaintenanceReport) => {
         set((state) => ({
-            reports: state.reports.map(report => report.id === id ? updatedReport : report)
+            reports: state.reports.map(report => report.id === parseInt(id) ? updatedReport : report)
         }));
     },
 
     removeReportFromList: (id: string) => {
         set((state) => ({
-            reports: state.reports.filter(report => report.id !== id)
+            reports: state.reports.filter(report => report.id !== parseInt(id))
         }));
     },
 }));

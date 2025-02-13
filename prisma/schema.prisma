@@ -33,6 +33,7 @@ model Usuario {
   mantenimientoReports MantenimientoReport[]
   redReports           RedReport[]
   aulaMovilReports     AulaMovilReport[]
+
 }
 
 enum Rol {
@@ -69,6 +70,7 @@ model MantenimientoReport {
   fechaRecibido     DateTime
   fechaEntrega      DateTime?
   fechaRegistro     DateTime          @default(now())
+  tipoEquipo        String?
   equipo            String
   marca             String?
   modelo            String?
@@ -84,6 +86,10 @@ model MantenimientoReport {
   detallesProceso   String?
 
   usuario Usuario @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([fechaRecibido])
+  @@index([tecnico])
 }
 
 enum TipoMantenimiento {

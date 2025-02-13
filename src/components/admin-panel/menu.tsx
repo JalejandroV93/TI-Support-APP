@@ -19,6 +19,7 @@ import {
 import { useAuth } from "@/components/providers/AuthProvider"; // Usa useAuth para obtener el usuario
 import { useRouter } from "next/navigation";
 import { SkeletonSideBar } from "@/components/skeletons/SkeletonsUI";
+import { useMemo } from "react"; // Import useMemo
 
 interface MenuProps {
   isOpen: boolean | undefined;
@@ -28,7 +29,10 @@ export function Menu({ isOpen }: MenuProps) {
   const pathname = usePathname();
   const { user, isLoading } = useAuth(); // Obtiene el usuario del contexto
   const router = useRouter();
-  const menuList = getMenuList(pathname, user); // Pasa el usuario a getMenuList
+  // Memoize the menu list.  This is the key fix!
+  const menuList = useMemo(() => {
+    return getMenuList(pathname, user);
+  }, [pathname, user]); // Only re-calculate if pathname or user changes
 
   const logout = async () => {
     await fetch("/api/auth/logout", {

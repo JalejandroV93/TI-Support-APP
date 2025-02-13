@@ -79,6 +79,7 @@ export const validateCredentials = async (username: string, password: string): P
 // getCurrentUser *solo* debe usarse en Server Components o Route Handlers.
 export const getCurrentUser = async (): Promise<UserPayload | null> => {
   const token = (await cookies()).get('auth_token')?.value;
+  //console.log(token);
   if (!token) {
     return null;
   }

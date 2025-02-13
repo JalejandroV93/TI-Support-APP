@@ -1,4 +1,3 @@
-// filepath: src/app/v1/(dashboard)/reports/maintenance/[id]/page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -32,6 +31,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ReportSkeleton } from "@/components/skeletons/SkeletonsUI";
 import { use } from "react";
+import { useMaintenanceReportStore } from "@/store/maintenanceReportStore"; // Import Zustand store
+
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -45,12 +46,15 @@ const ReportDetail = ({ params: paramsPromise }: PageProps) => {
   const { toast } = useToast();
   const params = use(paramsPromise);
   const reportId = params.id;
+  const { deleteReport } = useMaintenanceReportStore(); // Use Zustand action
+
 
   useEffect(() => {
     const fetchReport = async () => {
       setLoading(true);
       setError(null);
       try {
+        console.log("Fetching report...");
         const res = await fetch(`/api/v1/reports/maintenance/${reportId}`);
         if (res.ok) {
           const data = await res.json();
@@ -94,21 +98,12 @@ const ReportDetail = ({ params: paramsPromise }: PageProps) => {
     )
       return;
 
-    try {
-      const res = await fetch(`/api/v1/reports/maintenance/${reportId}`, {
-        method: "DELETE",
-      });
+    const success = await deleteReport(reportId); // Use Zustand action to delete report
 
-      if (res.ok) {
-        router.push("/v1/reports/maintenance"); // Use router.push
-        // router.refresh is usually not needed
-      } else {
-        const errorData = await res.json();
-        setError(errorData.message || "Error al eliminar el reporte.");
-      }
-    } catch (error) {
-      console.error("Error al eliminar el reporte:", error);
-      setError("Error de conexión al intentar eliminar el reporte.");
+    if (success) {
+        router.push("/v1/reports/maintenance"); // Navigate back to list on success
+    } else {
+        setError(useMaintenanceReportStore.getState().error || "Error al eliminar el reporte."); // Get error from Zustand
     }
   };
 
@@ -295,7 +290,7 @@ const ReportDetail = ({ params: paramsPromise }: PageProps) => {
               Eliminar
             </Button>
           </div>
-          <Button variant="secondary" onClick={handlePrint}>
+          <Button className="hidden" variant="secondary" onClick={handlePrint}>
             <Printer className="mr-2 h-4 w-4" /> Imprimir
           </Button>
         </CardFooter>

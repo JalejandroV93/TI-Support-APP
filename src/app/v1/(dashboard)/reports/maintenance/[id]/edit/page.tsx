@@ -5,12 +5,13 @@ import { useRouter } from "next/navigation";
 import Link from "next/link"; // Import Link
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import MaintenanceForm from "@/components/maintenance/MaintenanceForm";
-import { FormState, Technician } from "@/types/maintenance";
+import { FormState } from "@/types/maintenance";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { use } from "react";
 import { ArrowLeft } from "lucide-react"; // Import ArrowLeft icon
 import { Button } from "@/components/ui/button"; // Import Button
-
+import { useMaintenanceReportStore } from "@/store/maintenanceReportStore"; // Import Zustand store
+import { ReportSkeleton } from "@/components/skeletons/SkeletonsUI"; // Import Skeleton component
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -40,32 +41,19 @@ const EditMaintenanceReport = ({ params: paramsPromise }: PageProps) => {
     const { user } = useAuth();
     const [form, setForm] = useState<FormState>(loadingState);
     const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
-    const [submitError, setSubmitError] = useState<string | null>(null);
+    const [, setSubmitError] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [technicians, setTechnicians] = useState<Technician[]>([]);
     const [loadingReport, setLoadingReport] = useState(true);
     const router = useRouter();
+    const { technicians, fetchTechnicians, updateReport } = useMaintenanceReportStore(); // Use Zustand actions and state
+
 
     const params = use(paramsPromise);
       const reportId = params.id;
 
     useEffect(() => {
-        const fetchTechnicians = async () => {
-            try {
-                const res = await fetch("/api/v1/users/technicians");
-                if (res.ok) {
-                    const data = await res.json();
-                    setTechnicians(data);
-                } else {
-                    console.error("Error al obtener técnicos");
-                }
-            } catch (error) {
-                console.error("Error al obtener técnicos", error);
-            }
-        };
         fetchTechnicians();
-    }, []);
-
+    }, [fetchTechnicians]);
 
 
     useEffect(() => {
@@ -158,22 +146,13 @@ const EditMaintenanceReport = ({ params: paramsPromise }: PageProps) => {
             return;
           }
 
-        const payload = {
-            ...form,
-            userId: user.id,
-          };
 
-        const res = await fetch(`/api/v1/reports/maintenance/${reportId}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-        });
+        const success = await updateReport(reportId, form); // Use Zustand action to update report
 
-        if (res.ok) {
+        if (success) {
             router.push("/v1/reports/maintenance");  //  Use router.push. router.refresh is not strictly needed after navigation
         } else {
-            const errorData = await res.json();
-            setSubmitError(errorData.error || "Error al actualizar el reporte. Inténtalo de nuevo.");
+            setSubmitError(useMaintenanceReportStore.getState().error || "Error al actualizar el reporte. Inténtalo de nuevo."); // Get error from Zustand
         }
         setIsSubmitting(false);
     };
@@ -183,7 +162,7 @@ const EditMaintenanceReport = ({ params: paramsPromise }: PageProps) => {
     };
 
     if (loadingReport) {
-        return <div>Cargando reporte...</div>;
+        return <ReportSkeleton/>;
     }
 
 
@@ -192,16 +171,16 @@ const EditMaintenanceReport = ({ params: paramsPromise }: PageProps) => {
             <div className="flex items-center justify-between"> {/* Container for title and back button */}
                 <h1 className="text-2xl font-bold">Editar Reporte de Mantenimiento</h1> {/* Reduced font size */}
                 <Link href="/v1/reports/maintenance">
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" className="bg-[#be1522] text-white hover:bg-background">
                         <ArrowLeft className="mr-2 h-4 w-4" /> {/* Added back button with icon */}
                         Regresar
                     </Button>
                 </Link>
             </div>
-            {submitError && (
+            {useMaintenanceReportStore.getState().error && ( // Get error from Zustand
                 <Alert variant="destructive">
                     <AlertTitle>Error</AlertTitle>
-                    <AlertDescription>{submitError}</AlertDescription>
+                    <AlertDescription>{useMaintenanceReportStore.getState().error}</AlertDescription>
                 </Alert>
             )}
             <MaintenanceForm

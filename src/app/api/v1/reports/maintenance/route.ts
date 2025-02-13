@@ -2,31 +2,36 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
-type TipoMantenimiento = "PREVENTIVO" | "CORRECTIVO" | "OTRO";
+//import type { MaintenanceReportInput } from "@/types/maintenance";
+import { TipoMantenimiento } from "@prisma/client"; 
+import { z } from "zod"; // Import Zod
 
-interface MaintenanceReportInput {
-  equipo: string;
-  marca?: string;
-  modelo?: string;
-  sistemaOp?: string;
-  procesador?: string;
-  ram?: string;
-  ramCantidad?: number;
-  diagnostico?: string;
-  tipoMantenimiento: TipoMantenimiento;
-  solucion?: string;
-  fechaRecibido: string; // ISO string
-  fechaEntrega?: string;
-  tecnico: string;
-  observaciones?: string;
-  detallesProceso?: string;
-}
+// Define Zod schema for input validation
+const maintenanceReportInputSchema = z.object({
+  equipo: z.string().min(1, "Equipo is required"),
+  marca: z.string().optional(),
+  modelo: z.string().optional(),
+  sistemaOp: z.string().optional(),
+  procesador: z.string().optional(),
+  ram: z.string().optional(),
+  ramCantidad: z.number().int().positive().optional(),
+  diagnostico: z.string().optional(),
+  tipoMantenimiento: z.nativeEnum(TipoMantenimiento), // Use nativeEnum
+  solucion: z.string().optional(),
+  fechaRecibido: z.string().datetime(), // Validate as ISO string
+  fechaEntrega: z.string().datetime().optional(),
+  tecnico: z.string().min(1, "Technician is required"),
+  observaciones: z.string().optional(),
+  detallesProceso: z.string().optional(),
+    tipoEquipo: z.enum(["ESCRITORIO", "PORTATIL", "TABLET", "OTRO"]),
+});
+
+
+type MaintenanceReportInput = z.infer<typeof maintenanceReportInputSchema>;
+
 
 /**
  * GET: Retorna el listado de reportes paginado.
- * - Admin: obtiene todos los reportes.
- * - Colaborador: solo sus reportes.
- * - Recibe `page` y `pageSize` como query parameters.
  */
 export async function GET(request: Request) {
   const currentUser = await getCurrentUser();
@@ -54,12 +59,27 @@ export async function GET(request: Request) {
   const skip = (page - 1) * pageSize;
 
   try {
+    // Fetch only necessary fields.  Project the data!
     const reports = await prisma.mantenimientoReport.findMany({
       where: currentUser.rol === "ADMIN" ? {} : { userId: currentUser.id },
-      include: { usuario: true },
+      select: { // SELECT only these fields
+        id: true,
+        numeroReporte: true,
+        fechaRegistro: true,
+        equipo: true,
+        marca: true,
+        modelo: true,
+        tipoMantenimiento: true,
+        tecnico: true,
+        usuario: {
+          select: { // And only the name from the related user
+            nombre: true,
+          },
+        },
+      },
       skip,
       take: pageSize,
-      orderBy: { fechaRecibido: "desc" }, // Or any other suitable ordering
+      orderBy: { fechaRecibido: "desc" },
     });
 
     const totalCount = await prisma.mantenimientoReport.count({
@@ -87,23 +107,17 @@ export async function POST(request: Request) {
 
   let data: MaintenanceReportInput;
   try {
-    data = await request.json();
+    const rawData = await request.json();
+    data = maintenanceReportInputSchema.parse(rawData); // Validate with Zod!
   } catch (error) {
-    console.error("Error parseando request:", error);
-    return NextResponse.json({ error: "Datos inválidos" }, { status: 400 });
-  }
-
-  // Validate required fields on the server-side as well.
-  if (
-    !data.equipo ||
-    !data.fechaRecibido ||
-    !data.tecnico ||
-    !data.tipoMantenimiento
-  ) {
-    return NextResponse.json(
-      { error: "Faltan campos obligatorios" },
-      { status: 400 }
-    );
+    console.error("Error validating request:", error);
+      if (error instanceof z.ZodError) {
+      return NextResponse.json(
+          { error: "Datos inválidos", details: error.errors }, // Detailed Zod errors
+          { status: 400 }
+        );
+      }
+      return NextResponse.json({ error: "Datos inválidos" }, { status: 400 });
   }
 
   try {
@@ -116,40 +130,22 @@ export async function POST(request: Request) {
 
     const { fechaRecibido, fechaEntrega, ...restData } = data;
 
-    // Explicitly handle potentially undefined/null optional values,
-    // and convert ramCantidad to a number ONLY if it's defined and not empty
+    // Prepare data for Prisma, handling optional fields and type conversions.
     const prismaData = {
       numeroReporte,
       userId: currentUser.id,
       fechaRecibido: new Date(fechaRecibido),
       fechaEntrega: fechaEntrega ? new Date(fechaEntrega) : null,
-      equipo: restData.equipo,
-      marca: restData.marca ?? null,
-      modelo: restData.modelo ?? null,
-      sistemaOp: restData.sistemaOp ?? null,
-      procesador: restData.procesador ?? null,
-      ram: restData.ram ?? null,
-      ramCantidad: restData.ramCantidad ? Number(restData.ramCantidad) : null,
-      diagnostico: restData.diagnostico ?? null,
-      tipoMantenimiento: (restData.tipoMantenimiento &&
-      ["PREVENTIVO", "CORRECTIVO", "OTRO"].includes(
-        restData.tipoMantenimiento.toUpperCase()
-      )
-        ? restData.tipoMantenimiento.toUpperCase()
-        : "OTRO") as TipoMantenimiento,
-      solucion: restData.solucion ?? null,
-      tecnico: restData.tecnico,
-      observaciones: restData.observaciones ?? null,
-      detallesProceso: restData.detallesProceso ?? null,
+      ...restData, // Spread the rest of the data
+      ramCantidad: restData.ramCantidad ?? null, // Ensure correct null handling
     };
 
     const newReport = await prisma.mantenimientoReport.create({
-      data: prismaData, // Use the prepared data
+      data: prismaData,
     });
     return NextResponse.json(newReport, { status: 201 });
   } catch (error) {
     console.error("Error creando reporte:", error);
-    // Return a proper JSON error response.  This is VERY important.
     return NextResponse.json(
       { error: "Error del servidor al crear el reporte" },
       { status: 500 }
