@@ -57,7 +57,7 @@ const EquipoDetailsFields: React.FC<EquipoDetailsFieldsProps> = ({ form, errors,
         </div>
         <div className="space-y-2">
             <Label htmlFor="modelo">Modelo del equipo</Label>
-            <Input id="modelo" name="modelo" value={form.modelo} onChange={handleChange} />
+            <Input id="modelo" name="modelo" value={form.modelo ?? ''} onChange={handleChange} />
         </div>
 
         {/* Renderizamos campos de computadora solo si el tipo de equipo es Escritorio, Portátil o Tablet */}
@@ -80,7 +80,7 @@ const EquipoDetailsFields: React.FC<EquipoDetailsFieldsProps> = ({ form, errors,
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="procesador">Procesador</Label>
-                    <Input id="procesador" name="procesador" value={form.procesador} onChange={handleChange} />
+                    <Input id="procesador" name="procesador" value={form.procesador ?? ''} onChange={handleChange} />
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="ram">Tipo de RAM</Label>
@@ -103,7 +103,7 @@ const EquipoDetailsFields: React.FC<EquipoDetailsFieldsProps> = ({ form, errors,
                         id="ramCantidad"
                         name="ramCantidad"
                         type="number"
-                        value={form.ramCantidad === 0 ? "" : form.ramCantidad}
+                        value={form.ramCantidad === 0 ? "" : form.ramCantidad ?? ""}
                         onChange={handleChange}
                         placeholder="Ej: 8"
                     />

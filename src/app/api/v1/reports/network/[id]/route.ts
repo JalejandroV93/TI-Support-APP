@@ -1,44 +1,37 @@
-//api/v1/reports/maintenance/[id]/route.ts
-
+// src/app/api/v1/reports/network/[id]/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
-import { z } from "zod"; // Import Zod
-import { TipoMantenimiento } from "@prisma/client";
+import { z } from "zod";
+import { RedTipo, RedEstado, Prioridad } from "@prisma/client";
 
 // Zod schema for PUT request (partial update)
-const maintenanceReportUpdateSchema = z
+const networkReportUpdateSchema = z
   .object({
-    tipoEquipo: z.enum(["ESCRITORIO", "PORTATIL", "TABLET", "OTRO"]).optional(),
-    equipo: z.string().min(1, "Equipo is required").optional(),
-    marca: z.string().optional().nullable(),
-    modelo: z.string().optional().nullable(),
-    sistemaOp: z.string().optional().nullable(),
-    procesador: z.string().optional().nullable(),
-    ram: z.string().optional().nullable(),
-    ramCantidad: z.number().int().positive().optional().nullable(),
-    diagnostico: z.string().optional().nullable(),
-    tipoMantenimiento: z.nativeEnum(TipoMantenimiento).optional(),
+    fechaIncidente: z.string().datetime().optional(),
+    ubicacion: z.string().optional().nullable(),
+    tipo: z.nativeEnum(RedTipo).optional(),
+    descripcion: z.string().optional().nullable(),
+    dispositivo: z.string().optional().nullable(),
+    direccionIP: z.string().optional().nullable(),
+    direccionMAC: z.string().optional().nullable(),
+    estado: z.nativeEnum(RedEstado).optional(),
+    prioridad: z.nativeEnum(Prioridad).optional(),
+    tecnico: z.string().optional().nullable(),
+    notasTecnicas: z.string().optional().nullable(),
     solucion: z.string().optional().nullable(),
-    fechaRecibido: z.string().datetime().optional(),
-    fechaEntrega: z.string().datetime().optional().nullable(),
-    tecnico: z.string().min(1, "Technician is required").optional(),
-    observaciones: z.string().optional().nullable(),
-    detallesProceso: z.string().optional().nullable(),
   })
   .strict();
 
-type MaintenanceReportInput = z.infer<typeof maintenanceReportUpdateSchema>;
+type NetworkReportInput = z.infer<typeof networkReportUpdateSchema>;
 
-// Helper para parsear el parámetro ID de la ruta dinámica
+// Helper function to parse the ID parameter
 const parseId = (idParam: string): number | null => {
   const id = parseInt(idParam, 10);
   return isNaN(id) ? null : id;
 };
 
-/**
- * GET: Retorna el reporte específico.
- */
+// GET: Retrieve a specific network report
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -49,34 +42,33 @@ export async function GET(
   }
 
   const { id } = await params;
+
   const reportId = parseId(id);
+
   if (reportId === null) {
     return NextResponse.json({ error: "ID inválido" }, { status: 400 });
   }
 
-  //Use select to retrieve only necessary data.
-  const report = await prisma.mantenimientoReport.findUnique({
+  const report = await prisma.redReport.findUnique({
     where: { id: reportId },
     select: {
+      // Project only necessary data.
       id: true,
       numeroReporte: true,
       userId: true,
-      fechaRecibido: true,
-      fechaEntrega: true,
       fechaRegistro: true,
-      equipo: true,
-      marca: true,
-      modelo: true,
-      sistemaOp: true,
-      procesador: true,
-      ram: true,
-      ramCantidad: true,
-      tipoMantenimiento: true,
-      diagnostico: true,
-      solucion: true,
-      observaciones: true,
+      fechaIncidente: true,
+      ubicacion: true,
+      tipo: true,
+      descripcion: true,
+      dispositivo: true,
+      direccionIP: true,
+      direccionMAC: true,
+      estado: true,
+      prioridad: true,
       tecnico: true,
-      detallesProceso: true,
+      notasTecnicas: true,
+      solucion: true,
       usuario: {
         select: {
           nombre: true,
@@ -87,12 +79,11 @@ export async function GET(
 
   if (!report) {
     return NextResponse.json(
-      { error: "Reporte no encontrado" },
+      { error: "Reporte de red no encontrado" },
       { status: 404 }
     );
   }
 
-  // Validación de permisos
   if (currentUser.rol !== "ADMIN" && report.userId !== currentUser.id) {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
@@ -100,9 +91,7 @@ export async function GET(
   return NextResponse.json(report);
 }
 
-/**
- * PUT: Actualiza el reporte específico.
- */
+// PUT: Update a specific network report
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -120,10 +109,10 @@ export async function PUT(
     return NextResponse.json({ error: "ID inválido" }, { status: 400 });
   }
 
-  let data: MaintenanceReportInput;
+  let data: NetworkReportInput;
   try {
     const rawData = await request.json();
-    data = maintenanceReportUpdateSchema.parse(rawData); // Validate!
+    data = networkReportUpdateSchema.parse(rawData); // Validate!
   } catch (error) {
     console.error("Error validating request:", error);
     if (error instanceof z.ZodError) {
@@ -135,10 +124,10 @@ export async function PUT(
     return NextResponse.json({ error: "Datos inválidos" }, { status: 400 });
   }
 
-  const report = await prisma.mantenimientoReport.findUnique({ where: { id: reportId } });
+  const report = await prisma.redReport.findUnique({ where: { id: reportId } });
   if (!report) {
     return NextResponse.json(
-      { error: "Reporte no encontrado" },
+      { error: "Reporte de red no encontrado" },
       { status: 404 }
     );
   }
@@ -148,44 +137,35 @@ export async function PUT(
   }
 
   try {
-    const updatedReport = await prisma.mantenimientoReport.update({
+    const updatedReport = await prisma.redReport.update({
       where: { id: reportId },
       data: {
-        ...data, // Use spread for updates
-        fechaRecibido: data.fechaRecibido
-          ? new Date(data.fechaRecibido)
+        ...data,
+        fechaIncidente: data.fechaIncidente
+          ? new Date(data.fechaIncidente)
           : undefined,
-        fechaEntrega: data.fechaEntrega
-          ? new Date(data.fechaEntrega)
-          : undefined,
-        //THIS IS IMPORTANT
-        marca: data.marca === null ? null : data.marca,
-        modelo: data.modelo === null ? null : data.modelo,
-        sistemaOp: data.sistemaOp === null ? null : data.sistemaOp,
-        procesador: data.procesador === null ? null : data.procesador,
-        ram: data.ram === null ? null : data.ram,
-        ramCantidad: data.ramCantidad === null ? null : data.ramCantidad,
-        diagnostico: data.diagnostico === null ? null : data.diagnostico,
+        //THIS IS IMPORTANT FOR NULLABLES
+        ubicacion: data.ubicacion === null ? null : data.ubicacion,
+        descripcion: data.descripcion === null ? null : data.descripcion,
+        dispositivo: data.dispositivo === null ? null : data.dispositivo,
+        direccionIP: data.direccionIP === null ? null : data.direccionIP,
+        direccionMAC: data.direccionMAC === null ? null : data.direccionMAC,
+        tecnico: data.tecnico === null ? null : data.tecnico,
+        notasTecnicas: data.notasTecnicas === null ? null : data.notasTecnicas,
         solucion: data.solucion === null ? null : data.solucion,
-        observaciones: data.observaciones === null ? null : data.observaciones,
-        detallesProceso:
-          data.detallesProceso === null ? null : data.detallesProceso,
       },
     });
     return NextResponse.json(updatedReport);
   } catch (error) {
-    console.error("Error actualizando reporte:", error);
+    console.error("Error updating network report:", error);
     return NextResponse.json(
-      { error: "Error actualizando reporte" },
+      { error: "Error al actualizar el reporte de red" },
       { status: 500 }
     );
   }
 }
 
-/**
- * DELETE: Elimina el reporte específico.
- * Se permite la eliminación si el usuario es admin o el propietario del reporte.
- */
+// DELETE: Delete a specific network report
 export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -198,13 +178,13 @@ export async function DELETE(
 
     const { id } = await params;
 
-  const reportId = parseId(id);
+    const reportId = parseId(id);
 
-  if (reportId === null) {
+    if (reportId === null) {
       return NextResponse.json({ error: "ID inválido" }, { status: 400 });
     }
 
-    const report = await prisma.mantenimientoReport.findUnique({
+    const report = await prisma.redReport.findUnique({
       where: { id: reportId },
     });
     if (!report) {
@@ -219,7 +199,7 @@ export async function DELETE(
     }
 
     try {
-      await prisma.mantenimientoReport.delete({
+      await prisma.redReport.delete({
         where: { id: reportId },
       });
       return NextResponse.json({ success: true });
@@ -231,7 +211,7 @@ export async function DELETE(
       );
     }
   } catch (error) {
-    console.error("Error en DELETE /api/v1/reports/maintenance/[id]:", error);
+    console.error("Error en DELETE /api/v1/reports/network/[id]:", error);
     return NextResponse.json({ error: "Error interno" }, { status: 500 });
   }
 }

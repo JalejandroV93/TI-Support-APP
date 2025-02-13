@@ -17,7 +17,7 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { Clipboard, User, Calendar, LaptopMinimalCheck } from "lucide-react"
+import { Clipboard, User, Calendar, LaptopMinimalCheck } from "lucide-react";
 
 export function SkeletonSideBar({ isOpen = true }: { isOpen?: boolean }) {
   const groups = [
@@ -147,12 +147,10 @@ export function MaintenanceReportSkeleton() {
         ))}
       </div>
     </div>
-  )
+  );
 }
 
-
-
-export function ReportSkeleton(){
+export function ReportSkeleton() {
   return (
     <div className="p-4 max-w-4xl mx-auto">
       <Card>
@@ -190,6 +188,45 @@ export function ReportSkeleton(){
           <Skeleton className="h-10 w-24" />
         </CardFooter>
       </Card>
+    </div>
+  );
+}
+
+
+export function NetworkReportSkeleton() {
+  return (
+    <div className="p-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mt-4">
+        {[...Array(8)].map((_, index) => (
+          <Card key={index} className="animate-pulse">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clipboard className="w-5 h-5 text-muted-foreground" />
+                <Skeleton className="h-5 w-3/4" />
+              </CardTitle>
+              <CardDescription className="flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-muted-foreground" />
+                <Skeleton className="h-4 w-2/3" />
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <User className="w-4 h-4 text-muted-foreground" />
+                  <Skeleton className="h-6 w-1/3" />
+                </div>
+                 <div className="flex items-center gap-2">
+                  <Skeleton className="h-6 w-1/3" />
+                </div>
+              </div>
+            </CardContent>
+            <CardFooter className="flex justify-between">
+              <Skeleton className="h-9 w-20" />
+              <Skeleton className="h-9 w-20" />
+            </CardFooter>
+          </Card>
+        ))}
+      </div>
     </div>
   )
 }

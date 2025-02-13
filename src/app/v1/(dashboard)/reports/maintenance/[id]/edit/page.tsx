@@ -1,16 +1,16 @@
-// filepath: src/app/v1/(dashboard)/reports/maintenance/edit/[id]/page.tsx
+// src/app/v1/(dashboard)/reports/maintenance/[id]/edit/page.tsx
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link"; // Import Link
+import Link from "next/link";
 import MaintenanceForm from "@/components/maintenance/MaintenanceForm";
 import { FormState } from "@/types/maintenance";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { use } from "react";
-import { ArrowLeft } from "lucide-react"; // Import ArrowLeft icon
-import { Button } from "@/components/ui/button"; // Import Button
-import { useMaintenanceReportStore } from "@/store/maintenanceReportStore"; // Import Zustand store
-import { ReportSkeleton } from "@/components/skeletons/SkeletonsUI"; // Import Skeleton component
+import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useMaintenanceReportStore } from "@/store/maintenanceReportStore";
+import { ReportSkeleton } from "@/components/skeletons/SkeletonsUI";
 import { toast } from "sonner";
 
 interface PageProps {
@@ -122,10 +122,7 @@ const EditMaintenanceReport = ({ params: paramsPromise }: PageProps) => {
     setErrors((prevErrors) => ({ ...prevErrors, [name]: undefined }));
   };
 
-  const handleDateChange = (
-    name: "fechaRecibido" | "fechaEntrega",
-    date: Date | undefined
-  ) => {
+  const handleDateChange = (name: string, date: Date | undefined) => { // Corrected type
     if (date) {
       setForm({ ...form, [name]: date.toISOString() });
       setErrors({ ...errors, [name]: undefined });
@@ -206,25 +203,23 @@ const EditMaintenanceReport = ({ params: paramsPromise }: PageProps) => {
   return (
     <div className="container mx-auto p-4 space-y-6">
       <div className="flex items-center justify-between">
-        {" "}
-        {/* Container for title and back button */}
+
         <h1 className="text-2xl font-bold">
           Editar Reporte de Mantenimiento
-        </h1>{" "}
-        {/* Reduced font size */}
+        </h1>
         <Link href="/v1/reports/maintenance">
           <Button
             variant="outline"
             size="sm"
             className="bg-[#be1522] text-white hover:bg-background"
           >
-            <ArrowLeft className="mr-2 h-4 w-4" />{" "}
-            {/* Added back button with icon */}
+            <ArrowLeft className="mr-2 h-4 w-4" />
+
             Regresar
           </Button>
         </Link>
       </div>
-      {/* Use sonner for displaying errors */}
+
       {useMaintenanceReportStore.getState().error &&
         toast.error(useMaintenanceReportStore.getState().error)}
 

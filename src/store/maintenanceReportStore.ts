@@ -3,8 +3,8 @@ import { create } from "zustand";
 import {
   MaintenanceReport,
   FormState,
-  Technician,
 } from "@/types/maintenance";
+import { Technician } from "@/types/global";
 
 interface MaintenanceReportState {
   reports: MaintenanceReport[];

@@ -19,7 +19,7 @@ const ProcesoDetailsFields: React.FC<ProcesoDetailsFieldsProps> = ({ form, error
                     <Textarea
                         id="detallesProceso"
                         name="detallesProceso"
-                        value={form.detallesProceso}
+                        value={form.detallesProceso ?? ''}
                         onChange={handleChange}
                         required
                     />
@@ -34,7 +34,7 @@ const ProcesoDetailsFields: React.FC<ProcesoDetailsFieldsProps> = ({ form, error
                         <Textarea
                             id="diagnostico"
                             name="diagnostico"
-                            value={form.diagnostico}
+                            value={form.diagnostico ?? ''}
                             onChange={handleChange}
                             required
                         />
@@ -45,7 +45,7 @@ const ProcesoDetailsFields: React.FC<ProcesoDetailsFieldsProps> = ({ form, error
                         <Textarea
                             id="solucion"
                             name="solucion"
-                            value={form.solucion}
+                            value={form.solucion ?? ''}
                             onChange={handleChange}
                             required
                         />

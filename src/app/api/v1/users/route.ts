@@ -28,7 +28,7 @@ const parseIdParam = (idParam: string | null): number | null => {
 // Obtener todos los usuarios (solo admin)
 export async function GET() {
   const user = await getCurrentUser();
-  console.log("endpoint usuarios GET", user);
+  //console.log("endpoint usuarios GET", user);
 
   if (!isAdmin(user)) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 });

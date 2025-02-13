@@ -1,12 +1,12 @@
-// filepath: src/app/v1/(dashboard)/reports/maintenance/create/page.tsx
+// src/app/v1/(dashboard)/reports/maintenance/create/page.tsx
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { useAuth } from "@/components/providers/AuthProvider"; // Import useAuth
+import { useAuth } from "@/components/providers/AuthProvider";
 import MaintenanceForm from "@/components/maintenance/MaintenanceForm";
 import { FormState } from "@/types/maintenance";
-import { useMaintenanceReportStore } from "@/store/maintenanceReportStore"; // Import Zustand store
+import { useMaintenanceReportStore } from "@/store/maintenanceReportStore";
 
 
 const initialState: FormState = {
@@ -52,7 +52,7 @@ const CreateMaintenanceReport = () => {
         setErrors((prevErrors) => ({ ...prevErrors, [name]: undefined }));
     };
 
-    const handleDateChange = (name: "fechaRecibido" | "fechaEntrega", date: Date | undefined) => {
+    const handleDateChange = (name: string, date: Date | undefined) => { // Corrected type
         if (date) {
             setForm({ ...form, [name]: date.toISOString() });
             setErrors({ ...errors, [name]: undefined });

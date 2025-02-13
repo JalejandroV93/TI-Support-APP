@@ -90,7 +90,7 @@ export function Menu({ isOpen }: MenuProps) {
                             <Button
                               variant={
                                 (active === undefined &&
-                                  pathname.startsWith(href)) ||
+                                  pathname.startsWith(bun )) ||
                                 active
                                   ? "secondary"
                                   : "ghost"

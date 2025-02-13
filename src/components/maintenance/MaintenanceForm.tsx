@@ -1,4 +1,4 @@
-// filepath: src/app/v1/(dashboard)/reports/maintenance/components/MaintenanceForm.tsx
+// src/components/maintenance/MaintenanceForm.tsx
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -6,18 +6,20 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import DatePickerField from "./DatePickerField";
+import DatePickerField from "./DatePickerField"; // Import the corrected DatePickerField
 import EquipoDetailsFields from "./EquipoDetailsFields";
 import ProcesoDetailsFields from "./ProcesoDetailsFields";
-import { FormState, Technician } from "@/types/maintenance";
+import { FormState } from "@/types/maintenance";
+import { Technician } from "@/types/global"; // Import Technician from global
 import TechnicianSelect from "./TechnicianSelect";
+
 
 interface MaintenanceFormProps {
     form: FormState;
     errors: Partial<Record<keyof FormState, string>>;
     technicians: Technician[];
     handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-    handleDateChange: (name: "fechaRecibido" | "fechaEntrega", date: Date | undefined) => void;
+    handleDateChange: (name: string, date: Date | undefined) => void;  // Corrected type
     handleSelectChange: (name: keyof FormState, value: string) => void;
     handleSubmit: (e: React.FormEvent<HTMLFormElement>) => Promise<void>; // Make handleSubmit async
     isSubmitting: boolean;
@@ -46,21 +48,21 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
                 </CardHeader>
                 <CardContent className="grid gap-4 sm:grid-cols-2">
                     <DatePickerField
-                        name="fechaRecibido"
+                        name="fechaRecibido"  // Use string literal
                         label="Fecha Recibido"
                         value={form.fechaRecibido}
-                        onChange={handleDateChange}
+                        onChange={handleDateChange} // Pass the function directly
                         required
                         error={errors.fechaRecibido}
                     />
                     <DatePickerField
-                        name="fechaEntrega"
+                        name="fechaEntrega"  // Use string literal
                         label="Fecha Entrega"
-                        value={form.fechaEntrega || ""}
+                        value={form.fechaEntrega || ""}  // Handle possible null/undefined
                         onChange={handleDateChange}
                         error={errors.fechaEntrega}
                     />
-                    <TechnicianSelect
+                     <TechnicianSelect
                         technicians={technicians}
                         value={form.tecnico}
                         onChange={(value) => handleSelectChange("tecnico", value)}
@@ -120,7 +122,7 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
                 <CardContent>
                     <div className="space-y-2">
                         <Label htmlFor="observaciones">Observaciones (Opcional)</Label>
-                        <Textarea id="observaciones" name="observaciones" value={form.observaciones} onChange={handleChange} />
+                        <Textarea id="observaciones" name="observaciones" value={form.observaciones || ''} onChange={handleChange} />
                     </div>
                 </CardContent>
             </Card>

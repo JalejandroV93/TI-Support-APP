@@ -3,7 +3,7 @@
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Technician } from "@/types/maintenance";
+import { Technician } from "@/types/global";
 
 interface TechnicianSelectProps {
     technicians: Technician[];

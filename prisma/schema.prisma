@@ -100,22 +100,51 @@ enum TipoMantenimiento {
 
 // 5. Reporte de Red (más abierto para registrar daño, cambio, reparación, etc.)
 model RedReport {
-  id          Int      @id @default(autoincrement())
-  userId      Int
-  fecha       DateTime @default(now())
-  tipo        RedTipo // Tipo de reporte (daño, cambio, reparación, u otro)
-  descripcion String? // Detalle breve de la incidencia (sin sobrecargar al colaborador)
+  id              Int       @id @default(autoincrement())
+  numeroReporte   String    @unique @default("RR-")
+  userId          Int
+  fechaRegistro   DateTime  @default(now()) // Fecha de registro del reporte
+  fechaIncidente  DateTime  // Fecha del incidente (puede ser anterior)
+  ubicacion       String?   // Ej: Laboratorio 1, Oficina de Rectora, etc.
+  tipo            RedTipo   // Tipo de reporte (daño, cambio, reparación, u otro)
+  descripcion     String?   // Detalle breve de la incidencia (sin sobrecargar al colaborador)
+  dispositivo     String?   // Ej: Router, Switch, Punto de Acceso, Cableado
+  direccionIP     String?   // Si aplica (para dispositivos con IP)
+  direccionMAC    String?   // Si aplica (para dispositivos con MAC)
+  estado          RedEstado // NUEVO: Abierto, En Proceso, Resuelto, Cerrado
+  prioridad       Prioridad // NUEVO: Baja, Media, Alta, Urgente
+  tecnico         String?   // Nombre del técnico asignado (opcional)
+  notasTecnicas   String?   // Notas del técnico (para detalles técnicos)
+  solucion        String?    // Detalles sobre la solución aplicada.
+  usuario         Usuario   @relation(fields: [userId], references: [id])
 
-  usuario Usuario @relation(fields: [userId], references: [id])
+    @@index([userId])
+    @@index([fechaIncidente])
+    @@index([tecnico])
+    @@index([estado])
 }
 
 enum RedTipo {
-  DANIO // Reporte de daño
-  CAMBIO // Reporte de cambio de equipo/dispositivo
-  REPARACION // Reporte de reparación
-  OTRO // Otro tipo de incidencia
+  DANIO       // Reporte de daño
+  CAMBIO      // Reporte de cambio de equipo/dispositivo
+  REPARACION  // Reporte de reparación
+  MANTENIMIENTO // Mantenimiento programado
+  OTRO        // Otro tipo de incidencia
 }
 
+enum RedEstado {
+    ABIERTO
+    EN_PROCESO
+    RESUELTO
+    CERRADO
+}
+
+enum Prioridad {
+  BAJA
+  MEDIA
+  ALTA
+  URGENTE
+}
 // 6. Reporte de Aulas Móviles
 model AulaMovilReport {
   id        Int      @id @default(autoincrement())
