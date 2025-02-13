@@ -46,7 +46,8 @@ const CreateMaintenanceReport = () => {
         const { name, value, type } = e.target;
         setForm((prevForm) => ({
             ...prevForm,
-            [name]: type === "number" ? parseInt(value) || 0 : value,
+            // Handle number inputs, setting to null if empty
+            [name]: type === 'number' ? (value === '' ? null : parseInt(value, 10)) : value,
         }));
         setErrors((prevErrors) => ({ ...prevErrors, [name]: undefined }));
     };

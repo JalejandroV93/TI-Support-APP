@@ -7,26 +7,24 @@ import { z } from "zod"; // Import Zod
 import { TipoMantenimiento } from "@prisma/client";
 
 // Zod schema for PUT request (partial update)
-const maintenanceReportUpdateSchema = z
-  .object({
-    equipo: z.string().min(1, "Equipo is required").optional(),
-    marca: z.string().optional(),
-    modelo: z.string().optional(),
-    sistemaOp: z.string().optional(),
-    procesador: z.string().optional(),
-    ram: z.string().optional(),
-    ramCantidad: z.number().int().positive().optional(),
-    diagnostico: z.string().optional(),
-    tipoMantenimiento: z.nativeEnum(TipoMantenimiento).optional(), // Ensure it's a valid enum
-    solucion: z.string().optional(),
-    fechaRecibido: z.string().datetime().optional(), // Validate as ISO string
-    fechaEntrega: z.string().datetime().optional(),
-    tecnico: z.string().min(1, "Technician is required").optional(),
-    observaciones: z.string().optional(),
-    detallesProceso: z.string().optional(),
-    tipoEquipo: z.enum(["ESCRITORIO", "PORTATIL", "TABLET", "OTRO"]).optional(),
-  })
-  .strict(); // Prevent unknown fields
+const maintenanceReportUpdateSchema = z.object({
+  tipoEquipo: z.enum(["ESCRITORIO", "PORTATIL", "TABLET", "OTRO"]).optional(),
+  equipo: z.string().min(1, "Equipo is required").optional(),
+  marca: z.string().optional().nullable(),
+  modelo: z.string().optional().nullable(),
+  sistemaOp: z.string().optional().nullable(),
+  procesador: z.string().optional().nullable(),
+  ram: z.string().optional().nullable(),
+  ramCantidad: z.number().int().positive().optional().nullable(),
+  diagnostico: z.string().optional().nullable(),
+  tipoMantenimiento: z.nativeEnum(TipoMantenimiento).optional(),
+  solucion: z.string().optional().nullable(),
+  fechaRecibido: z.string().datetime().optional(),
+  fechaEntrega: z.string().datetime().optional().nullable(),
+  tecnico: z.string().min(1, "Technician is required").optional(),
+  observaciones: z.string().optional().nullable(),
+  detallesProceso: z.string().optional().nullable(),
+}).strict();
 
 type MaintenanceReportInput = z.infer<typeof maintenanceReportUpdateSchema>;
 
@@ -150,10 +148,21 @@ export async function PUT(
         ...data, // Use spread for updates
         fechaRecibido: data.fechaRecibido
           ? new Date(data.fechaRecibido)
-          : undefined, //Conditional date conversion
+          : undefined,
         fechaEntrega: data.fechaEntrega
           ? new Date(data.fechaEntrega)
-          : undefined, //Conditional
+          : undefined,
+          //THIS IS IMPORTANT
+          marca: data.marca === null ? null: data.marca,
+          modelo: data.modelo === null ? null: data.modelo,
+          sistemaOp: data.sistemaOp === null ? null : data.sistemaOp,
+          procesador: data.procesador === null ? null : data.procesador,
+          ram: data.ram === null ? null : data.ram,
+          ramCantidad: data.ramCantidad === null ? null : data.ramCantidad,
+          diagnostico: data.diagnostico === null ? null : data.diagnostico,
+          solucion: data.solucion === null ? null: data.solucion,
+          observaciones: data.observaciones === null ? null : data.observaciones,
+          detallesProceso: data.detallesProceso === null ? null : data.detallesProceso,
       },
     });
     return NextResponse.json(updatedReport);

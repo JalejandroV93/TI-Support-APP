@@ -2,29 +2,29 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
-//import type { MaintenanceReportInput } from "@/types/maintenance";
 import { TipoMantenimiento } from "@prisma/client"; 
 import { z } from "zod"; // Import Zod
 
-// Define Zod schema for input validation
+// Define Zod schema for input validation (more precise and consistent)
 const maintenanceReportInputSchema = z.object({
+  tipoEquipo: z.enum(["ESCRITORIO", "PORTATIL", "TABLET", "OTRO"]), // Moved up
   equipo: z.string().min(1, "Equipo is required"),
-  marca: z.string().optional(),
-  modelo: z.string().optional(),
-  sistemaOp: z.string().optional(),
-  procesador: z.string().optional(),
-  ram: z.string().optional(),
-  ramCantidad: z.number().int().positive().optional(),
-  diagnostico: z.string().optional(),
-  tipoMantenimiento: z.nativeEnum(TipoMantenimiento), // Use nativeEnum
-  solucion: z.string().optional(),
-  fechaRecibido: z.string().datetime(), // Validate as ISO string
-  fechaEntrega: z.string().datetime().optional(),
+  marca: z.string().optional().nullable(), // Allow null
+  modelo: z.string().optional().nullable(), // Allow null
+  sistemaOp: z.string().optional().nullable(), // Allow null
+  procesador: z.string().optional().nullable(),// Allow null
+  ram: z.string().optional().nullable(),       // Allow null
+  ramCantidad: z.number().int().optional().nullable(), // Allow null + positive
+  diagnostico: z.string().optional().nullable(),  // Allow null
+  tipoMantenimiento: z.nativeEnum(TipoMantenimiento),
+  solucion: z.string().optional().nullable(),       // Allow null
+  fechaRecibido: z.string().datetime(),
+  fechaEntrega: z.string().datetime().optional().nullable(), // Allow null
   tecnico: z.string().min(1, "Technician is required"),
-  observaciones: z.string().optional(),
-  detallesProceso: z.string().optional(),
-    tipoEquipo: z.enum(["ESCRITORIO", "PORTATIL", "TABLET", "OTRO"]),
+  observaciones: z.string().optional().nullable(),    // Allow null
+  detallesProceso: z.string().optional().nullable(),  // Allow null
 });
+
 
 
 type MaintenanceReportInput = z.infer<typeof maintenanceReportInputSchema>;
@@ -40,23 +40,23 @@ export async function GET(request: Request) {
   }
 
   const { searchParams } = new URL(request.url);
-  const page = parseInt(searchParams.get("page") ?? "1", 10) || 1;
-  const pageSize = parseInt(searchParams.get("pageSize") ?? "10", 10) || 10;
+      const page = parseInt(searchParams.get("page") ?? "1", 10) || 1;
+      const pageSize = parseInt(searchParams.get("pageSize") ?? "10", 10) || 10;
 
-  if (isNaN(page) || page < 1) {
-    return NextResponse.json(
-      { error: "Número de página inválido" },
-      { status: 400 }
-    );
-  }
-  if (isNaN(pageSize) || pageSize < 1 || pageSize > 100) {
-    return NextResponse.json(
-      { error: "Tamaño de página inválido (1-100)" },
-      { status: 400 }
-    );
-  }
+      if (isNaN(page) || page < 1) {
+        return NextResponse.json(
+          { error: "Número de página inválido" },
+          { status: 400 }
+        );
+      }
+      if (isNaN(pageSize) || pageSize < 1 || pageSize > 100) {
+        return NextResponse.json(
+          { error: "Tamaño de página inválido (1-100)" },
+          { status: 400 }
+        );
+      }
 
-  const skip = (page - 1) * pageSize;
+      const skip = (page - 1) * pageSize;
 
   try {
     // Fetch only necessary fields.  Project the data!
@@ -72,7 +72,7 @@ export async function GET(request: Request) {
         tipoMantenimiento: true,
         tecnico: true,
         usuario: {
-          select: { // And only the name from the related user
+          select: {
             nombre: true,
           },
         },
@@ -113,7 +113,7 @@ export async function POST(request: Request) {
     console.error("Error validating request:", error);
       if (error instanceof z.ZodError) {
       return NextResponse.json(
-          { error: "Datos inválidos", details: error.errors }, // Detailed Zod errors
+          { error: "Datos inválidos", details: error.errors },
           { status: 400 }
         );
       }
@@ -126,7 +126,7 @@ export async function POST(request: Request) {
       orderBy: { id: "desc" },
     });
     const nextNumber = (lastReport?.id || 0) + 1;
-    const numeroReporte = `RM-${nextNumber.toString().padStart(4, "0")}`;
+    const numeroReporte = `LTSM-${nextNumber.toString().padStart(4, "0")}`;
 
     const { fechaRecibido, fechaEntrega, ...restData } = data;
 

@@ -4,21 +4,21 @@ export type TipoMantenimiento = "CORRECTIVO" | "PREVENTIVO" | "OTRO";
 export interface FormState {
   tipoEquipo: TipoEquipo;
   equipo: string;
-  marca?: string;
-  modelo?: string;
-  sistemaOp?: string;
-  procesador?: string;
-  ram?: string;
-  ramCantidad?: number;
+  marca?: string | null; // Correct type
+  modelo?: string | null; // Correct type
+  sistemaOp?: string | null; // Correct type
+  procesador?: string | null; // Correct type
+  ram?: string | null; // Correct type
+  ramCantidad?: number | null; // Correct type
   tipoMantenimiento: TipoMantenimiento;
-  diagnostico?: string;
-  solucion?: string;
+  diagnostico?: string | null; // Correct type
+  solucion?: string | null; // Correct type
   fechaRecibido: string;
-  fechaEntrega?: string;
+  fechaEntrega?: string | null; // Correct type
   tecnico: string;
-  detallesProceso: string;
-  observaciones?: string;
-  userId?: string; // Add userId here
+  detallesProceso: string | null;  // Correct type
+  observaciones?: string | null;    // Correct type
+  // REMOVE userId
 }
 
 export interface Technician {

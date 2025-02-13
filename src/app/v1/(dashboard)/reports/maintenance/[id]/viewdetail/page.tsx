@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Link from 'next/link'; // Import Link
+import Link from "next/link"; // Import Link
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -27,12 +27,13 @@ import {
   Printer,
   ArrowLeft,
 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+//import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ReportSkeleton } from "@/components/skeletons/SkeletonsUI";
 import { use } from "react";
 import { useMaintenanceReportStore } from "@/store/maintenanceReportStore"; // Import Zustand store
-
+import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
+import { toast } from "sonner"; // Import useToast
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -43,11 +44,9 @@ const ReportDetail = ({ params: paramsPromise }: PageProps) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-  const { toast } = useToast();
   const params = use(paramsPromise);
   const reportId = params.id;
   const { deleteReport } = useMaintenanceReportStore(); // Use Zustand action
-
 
   useEffect(() => {
     const fetchReport = async () => {
@@ -69,11 +68,7 @@ const ReportDetail = ({ params: paramsPromise }: PageProps) => {
           }
         }
       } catch (err) {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Error al cargar el reporte.",
-        });
+        toast.error("Error al cargar el reporte");
         console.error("Error al cargar el reporte", err);
         setError(
           "Error al cargar el reporte. Verifica tu conexión a internet."
@@ -84,27 +79,30 @@ const ReportDetail = ({ params: paramsPromise }: PageProps) => {
     };
 
     fetchReport();
-  }, [reportId, toast]);
+  }, [reportId]);
 
-  const handlePrint = () => {
-    window.print();
+  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false); // Add state for dialog
+  const handleDelete = async () => {
+    setIsConfirmDialogOpen(true); // Open confirmation dialog
   };
 
-  const handleDelete = async () => {
-    if (
-      !confirm(
-        "¿Está seguro de eliminar este reporte? Esta acción es irreversible."
-      )
-    )
-      return;
-
+  const handleConfirmDelete = async () => {
+    // Separate confirmation handler
+    setIsConfirmDialogOpen(false); // Close dialog
     const success = await deleteReport(reportId); // Use Zustand action to delete report
 
     if (success) {
-        router.push("/v1/reports/maintenance"); // Navigate back to list on success
+      router.push("/v1/reports/maintenance"); // Navigate back to list on success
     } else {
-        setError(useMaintenanceReportStore.getState().error || "Error al eliminar el reporte."); // Get error from Zustand
+      toast.error(
+        useMaintenanceReportStore.getState().error ||
+          "Error al eliminar el reporte."
+      ); // Get error from Zustand
     }
+  };
+
+  const handlePrint = () => {
+    window.print();
   };
 
   if (loading) {
@@ -127,44 +125,46 @@ const ReportDetail = ({ params: paramsPromise }: PageProps) => {
   return (
     <div className="p-4 print:p-8 max-w-4xl mx-auto">
       <Card className="print:shadow-none">
-          <CardHeader>
-              <div className="flex justify-between items-center mb-4">
-                   <Link href="/v1/reports/maintenance">
-                      <Button variant="ghost" className="print:hidden">
-                          <ArrowLeft className="mr-2 h-4 w-4" /> Regresar
-                      </Button>
-                  </Link>
-                  <Badge
-                      variant={
-                          report.tipoMantenimiento === "CORRECTIVO"
-                              ? "destructive"
-                              : "secondary"
-                      }
-                      className="text-md px-4 py-2"
-                  >
-                      Mantenimiento {report.tipoMantenimiento.toLowerCase()
-                    .charAt(0)
-                    .toUpperCase() +
-                    report.tipoMantenimiento.toLowerCase().slice(1)}
-                  </Badge>
-              </div>
-              <CardTitle className="flex flex-col gap-2 items-start print:items-center">
-                  <div className="flex items-center gap-2">
-                      <Clipboard className="w-5 h-5" /> {/* Reduced size */}
-                      <h1 className="text-lg font-bold">{report.numeroReporte}</h1> {/* Reduced size */}
-                  </div>
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                      <Calendar className="w-4 h-4" />
-                      <span className="text-sm">
-                          {format(new Date(report.fechaRegistro), "PPP", { locale: es })}
-                      </span>
-                  </div>
-              </CardTitle>
-              <CardDescription className="flex gap-2 mt-2 text-base"> {/* Reduced text size */}
-                  <Tool className="w-5 h-5 text-muted-foreground" />
-                  <p className="text-gray-700 dark:text-gray-50">{report.equipo}</p>
-              </CardDescription>
-          </CardHeader>
+        <CardHeader>
+          <div className="flex justify-between items-center mb-4">
+            <Link href="/v1/reports/maintenance">
+              <Button variant="ghost" className="print:hidden">
+                <ArrowLeft className="mr-2 h-4 w-4" /> Regresar
+              </Button>
+            </Link>
+            <Badge
+              variant={
+                report.tipoMantenimiento === "CORRECTIVO"
+                  ? "destructive"
+                  : "secondary"
+              }
+              className="text-md px-4 py-2"
+            >
+              Mantenimiento{" "}
+              {report.tipoMantenimiento.toLowerCase().charAt(0).toUpperCase() +
+                report.tipoMantenimiento.toLowerCase().slice(1)}
+            </Badge>
+          </div>
+          <CardTitle className="flex flex-col gap-2 items-start print:items-center">
+            <div className="flex items-center gap-2">
+              <Clipboard className="w-5 h-5" /> {/* Reduced size */}
+              <h1 className="text-lg font-bold">{report.numeroReporte}</h1>{" "}
+              {/* Reduced size */}
+            </div>
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Calendar className="w-4 h-4" />
+              <span className="text-sm">
+                {format(new Date(report.fechaRegistro), "PPP", { locale: es })}
+              </span>
+            </div>
+          </CardTitle>
+          <CardDescription className="flex gap-2 mt-2 text-base">
+            {" "}
+            {/* Reduced text size */}
+            <Tool className="w-5 h-5 text-muted-foreground" />
+            <p className="text-gray-700 dark:text-gray-50">{report.equipo}</p>
+          </CardDescription>
+        </CardHeader>
         <CardContent>
           <Tabs defaultValue="details" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
@@ -282,9 +282,9 @@ const ReportDetail = ({ params: paramsPromise }: PageProps) => {
         <CardFooter className="flex flex-wrap justify-between gap-4 print:hidden">
           <div className="flex gap-2">
             <Link href={`/v1/reports/maintenance/${report.id}/edit`}>
-                <Button variant="outline" >
-                  <Tool className="mr-2 h-4 w-4" /> Editar
-                </Button>
+              <Button variant="outline">
+                <Tool className="mr-2 h-4 w-4" /> Editar
+              </Button>
             </Link>
             <Button variant="destructive" onClick={handleDelete}>
               Eliminar
@@ -295,6 +295,15 @@ const ReportDetail = ({ params: paramsPromise }: PageProps) => {
           </Button>
         </CardFooter>
       </Card>
+      {/* Confirmation Dialog */}
+      <ConfirmDeleteDialog
+        open={isConfirmDialogOpen}
+        title="Eliminar Reporte"
+        description="¿Estás seguro de que quieres eliminar este reporte?  Esta acción es irreversible."
+        reportNumber={report ? report.numeroReporte : ""} // Pass the report number
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setIsConfirmDialogOpen(false)} // Close dialog on cancel
+      />
     </div>
   );
 };
