@@ -357,3 +357,67 @@ export function AreasLoading() {
     </div>
   );
 }
+
+
+export function UnifiedReportTableSkeleton() {
+  return (
+    <div className="w-full">
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>
+                <Skeleton className="h-5 w-[80px]" />
+              </TableHead>
+              <TableHead>
+                <Skeleton className="h-5 w-[120px]" />
+              </TableHead>
+              <TableHead>
+                <Skeleton className="h-5 w-[150px]" />
+              </TableHead>
+              <TableHead>
+                <Skeleton className="h-5 w-[100px]" />
+              </TableHead>
+              <TableHead>
+                <Skeleton className="h-5 w-[100px]" />
+              </TableHead>
+              <TableHead>
+                <Skeleton className="h-5 w-full" />
+              </TableHead>
+              <TableHead>
+                <Skeleton className="h-5 w-20" />
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {Array.from({ length: 10 }).map((_, index) => (
+              <TableRow key={index}>
+                <TableCell>
+                  <Skeleton className="h-5 w-[80px]" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-5 w-[120px]" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-5 w-[150px]" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-5 w-[100px]" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-5 w-[100px]" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-5 w-full" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-5 w-20" />
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+}
