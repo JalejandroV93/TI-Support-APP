@@ -127,7 +127,22 @@ const ReportDetail = ({ params: paramsPromise }: PageProps) => {
           status.slice(1).toLowerCase().replace("_", " ")
         );
       };
-
+  
+  //Helper function to get Status variant
+    const getStatusVariant = (status: string) => {
+        switch (status) {
+          case "ABIERTO":
+            return "destructive";
+          case "EN_PROCESO":
+          case "PENDIENTE_POR_TERCERO":
+            return "warning";
+          case "RESUELTO":
+            return "success";
+          case "CERRADO":
+          default:
+            return "secondary";
+        }
+    };
 
     return (
     <div className="p-4 print:p-8 max-w-4xl mx-auto">
@@ -140,6 +155,7 @@ const ReportDetail = ({ params: paramsPromise }: PageProps) => {
               </Button>
             </Link>
             <Badge
+              variant={getStatusVariant(report.estado)}
               className="text-md px-4 py-2"
             >
               {getStatusLabel(report.estado)}
@@ -177,8 +193,18 @@ const ReportDetail = ({ params: paramsPromise }: PageProps) => {
                 </div>
                 <div>
                 <p className="font-medium">Área de Reporte:</p>
-                <p>{report.reporteArea}</p>
+                <p>{report.area.nombre}</p>  {/* Use area.nombre */}
                 </div>
+                 <div>
+                    <p className="font-medium">Nombre:</p>
+                    <p>{report.nombrePersona || "N/A"}</p>
+                </div>
+                {report.ubicacionDetalle && (
+                <div>
+                    <p className="font-medium">Ubicación Detallada:</p>
+                    <p>{report.ubicacionDetalle}</p>
+                </div>
+                )}
                 <div>
                     <p className="font-medium">Fecha Solución:</p>
                     <p>{report.fechaSolucion ? format(new Date(report.fechaSolucion), "PPP", {
@@ -198,10 +224,10 @@ const ReportDetail = ({ params: paramsPromise }: PageProps) => {
               <p>{report.solucion}</p>
             </div>
           )}
-          {report.notasTecnicas && (
+          {report.notas && (
             <div className="mt-6">
-              <h2 className="text-lg font-semibold mb-2">Notas Técnicas</h2>
-              <p>{report.notasTecnicas}</p>
+              <h2 className="text-lg font-semibold mb-2">Notas</h2>
+              <p>{report.notas}</p>
             </div>
           )}
 

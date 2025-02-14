@@ -12,7 +12,7 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ReportSkeleton } from "@/components/skeletons/SkeletonsUI"; //IMPORT
-import { ReporteArea, SoporteEstado, TipoUsuario } from "@prisma/client";  //IMPORT
+import {  SoporteEstado, TipoUsuario } from "@prisma/client";  //IMPORT
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -20,12 +20,14 @@ interface PageProps {
 
 const loadingState: SupportReportFormState = {
     categoriaId: 0,
+    reporteAreaId: 0, // Use ID
     descripcion: "",
     //fecha: "", Remove fecha
-    reporteArea: ReporteArea.OTRO,
     tipoUsuario: TipoUsuario.OTRO,
+    nombrePersona: "",     //NEW
+    ubicacionDetalle: "", //NEW
     solucion: "",
-    notasTecnicas: "",
+    notas: "",          // Renamed
     estado: SoporteEstado.ABIERTO,
     fueSolucionado: false
   };
@@ -42,6 +44,8 @@ const EditSupportReportPage = ({ params: paramsPromise }: PageProps) => {
     const { updateReport } = useSupportReportStore();
 
     const [categories, setCategories] = useState<{ id: number; nombre: string }[]>([]);
+     //NEW: Areas
+    const [areas, setAreas] = useState<{ id: number; nombre: string }[]>([]);
 
     const params = use(paramsPromise);
     const reportId = params.id;
@@ -63,8 +67,24 @@ const EditSupportReportPage = ({ params: paramsPromise }: PageProps) => {
           // Consider showing an error to the user.
         }
       };
+
+      //NEW
+      const fetchAreas = async () => {
+        try {
+          const res = await fetch("/api/v1/settings/areas");
+          if (res.ok) {
+            const areasData = await res.json();
+            setAreas(areasData);
+          } else {
+            console.error("Failed to fetch areas:", await res.text());
+          }
+        } catch (error) {
+          console.error("Error fetching areas:", error);
+        }
+      };
   
       fetchCategories();
+      fetchAreas(); //NEW
     }, []);
 
     useEffect(() => {
@@ -76,11 +96,13 @@ const EditSupportReportPage = ({ params: paramsPromise }: PageProps) => {
             const data = await res.json();
             const reportData: SupportReportFormState = {
                 categoriaId: data.categoriaId,
-                descripcion: data.descripcion,
-                reporteArea: data.reporteArea,   //NEW
+                reporteAreaId: data.reporteAreaId,  // Use ID
                 tipoUsuario: data.tipoUsuario,     //NEW
+                nombrePersona: data.nombrePersona,   //NEW
+                ubicacionDetalle: data.ubicacionDetalle, //NEW
+                descripcion: data.descripcion,
                 solucion: data.solucion,            //NEW
-                notasTecnicas: data.notasTecnicas,
+                notas: data.notas, // Renamed
                 estado: data.estado,   //NEW
                 fueSolucionado: data.fueSolucionado,    //NEW
                 //fecha: data.fecha  //Remove fecha
@@ -121,11 +143,11 @@ const EditSupportReportPage = ({ params: paramsPromise }: PageProps) => {
 
     const handleSelectChange = (
       name: keyof SupportReportFormState,
-      value: string | number
+      value: string | number | boolean
     ) => {
       // Ensure categoriaId is always a number
       const processedValue =
-        name === "categoriaId" ? parseInt(value as string, 10) : value;
+        name === "categoriaId" || name === "reporteAreaId" ? parseInt(value as string, 10) : value;
         setForm((prevForm) => ({ ...prevForm, [name]: processedValue }));
         setErrors((prevErrors) => ({ ...prevErrors, [name]: undefined }));
       };
@@ -140,7 +162,8 @@ const EditSupportReportPage = ({ params: paramsPromise }: PageProps) => {
           newErrors.categoriaId = "La categoría es requerida";
         if (!form.descripcion) newErrors.descripcion = "La descripción es requerida";
         if (!form.tipoUsuario) newErrors.tipoUsuario = "El tipo de usuario es requerido";
-        if (!form.reporteArea) newErrors.reporteArea = "El area del reporte es requerido";
+        if (!form.reporteAreaId)
+          newErrors.reporteAreaId = "El area del reporte es requerido";
   
         return newErrors;
       };
@@ -207,11 +230,11 @@ const EditSupportReportPage = ({ params: paramsPromise }: PageProps) => {
             form={form}
             errors={errors}
             handleChange={handleChange}
-            //handleDateChange={handleDateChange} Remove handleDateChange
             handleSelectChange={handleSelectChange}
             handleSubmit={handleSubmit}
             isSubmitting={isSubmitting}
             categories={categories}  // Pass categories here
+            areas={areas} // Pass areas
           />
         </div>
       );

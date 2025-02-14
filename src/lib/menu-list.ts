@@ -98,6 +98,10 @@ export function getMenuList(pathname: string, user: UserPayload | null): Group[]
             href: "/v1/settings/categories",
             label: "Categorías de Soporte",
         },
+        {
+            href: "/v1/settings/areas",
+            label: "Áreas de Soporte",
+        }
         // Add other setting submenus here
     ],
 };

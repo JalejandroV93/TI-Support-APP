@@ -1,16 +1,19 @@
 // src/types/support.ts
-import { SoporteCategoria, SoporteEstado, TipoUsuario, ReporteArea } from "@prisma/client"; // Import SoporteCategoria
+import { SoporteCategoria, SoporteEstado, TipoUsuario } from "@prisma/client";
 
 export interface SupportReportFormState {
-  categoriaId: number; // Consistent type: number
+  categoriaId: number;
+  reporteAreaId: number; // Now expects an ID
+  tipoUsuario: TipoUsuario;
+  nombrePersona?: string | null; // Added: Name of person
+  ubicacionDetalle?: string | null; // Added: Detailed location
   descripcion: string;
-  fecha?: string; // Optional, as it's often handled by the backend
-  reporteArea: ReporteArea;  //NEW
-  tipoUsuario: TipoUsuario; //NEW
-  solucion?: string | null;   //NEW
-  notasTecnicas?: string | null;  //NEW
+  solucion?: string | null;
+  notas?: string | null; // Renamed
   estado: SoporteEstado;
   fueSolucionado: boolean;
+  fecha?: string; // Keep fecha
+  fechaSolucion?: string | null; // Kepp
 }
 
 export interface SupportReport extends SupportReportFormState {
@@ -19,8 +22,8 @@ export interface SupportReport extends SupportReportFormState {
   fecha: string;
   userId: number;
   usuario: { nombre: string };
-  categoria: SoporteCategoria; // Use the imported type
-  fechaSolucion?: string | null;  //NEW
+  categoria: SoporteCategoria;
+  area: { nombre: string }; // Added: Include area information
 }
 
 // Add this for consistency with other reports

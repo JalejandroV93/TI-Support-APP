@@ -1,4 +1,3 @@
-// src/app/v1/(dashboard)/reports/support/page.tsx
 "use client";
 
 import Link from "next/link";
@@ -103,6 +102,22 @@ export default function SupportReportsPage() {
       );
     };
 
+     //Helper function to get Status variant
+     const getStatusVariant = (status: string) => {
+        switch (status) {
+            case "ABIERTO":
+                return "destructive";
+            case "EN_PROCESO":
+            case "PENDIENTE_POR_TERCERO":
+                return "warning";
+            case "RESUELTO":
+                return "success";
+            case "CERRADO":
+            default:
+                return "secondary";
+        }
+    };
+
   if (error)
     return <div>Ocurrio un error al obtener los reportes de soporte.</div>;
 
@@ -131,6 +146,7 @@ export default function SupportReportsPage() {
                     {report.numeroReporte}
                   </div>
                   <Badge
+                    variant={getStatusVariant(report.estado)}
                     >
                     {getStatusLabel(report.estado)}
                   </Badge>

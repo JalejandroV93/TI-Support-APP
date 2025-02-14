@@ -1,19 +1,22 @@
+// src/app/api/v1/reports/support/route.ts
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
 import { z } from 'zod';
-import { SoporteEstado, TipoUsuario, ReporteArea } from '@prisma/client';
+import { SoporteEstado, TipoUsuario } from '@prisma/client';
 
 // --- Input Validation Schemas ---
 const supportReportInputSchema = z.object({
   categoriaId: z.number().int().positive(),
-  descripcion: z.string().min(1, 'La descripción es requerida'),
-  reporteArea: z.nativeEnum(ReporteArea),
+  reporteAreaId: z.number().int().positive(), // Validate ID
   tipoUsuario: z.nativeEnum(TipoUsuario),
+  nombrePersona: z.string().min(1, "El nombre es requerido").optional().nullable(), // Added and validated
+  ubicacionDetalle: z.string().optional().nullable(), // Added
+  descripcion: z.string().min(1, 'La descripción es requerida'),
   solucion: z.string().optional().nullable(),
-  notasTecnicas: z.string().optional().nullable(),
-  estado: z.nativeEnum(SoporteEstado).optional(), // Optional during creation
-  fueSolucionado: z.boolean().optional()  // Optional, defaults to false in Prisma
+  notas: z.string().optional().nullable(),       // Renamed
+  estado: z.nativeEnum(SoporteEstado).optional(),
+  fueSolucionado: z.boolean().optional()
 });
 
 type SupportReportInput = z.infer<typeof supportReportInputSchema>;
@@ -21,55 +24,57 @@ type SupportReportInput = z.infer<typeof supportReportInputSchema>;
 
 // --- POST: Create a new support report ---
 export async function POST(request: Request) {
-  const currentUser = await getCurrentUser();
-  if (!currentUser) {
-    return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
-  }
-  let data: SupportReportInput;
-  try {
-    const rawData = await request.json();
-    data = supportReportInputSchema.parse(rawData); // Validate!
-  } catch (error) {
-      console.error("Validation error:", error);
-      if (error instanceof z.ZodError) {
-        return NextResponse.json(
-          { error: "Datos inválidos", details: error.errors },
-          { status: 400 }
-        );
-      }
-      return NextResponse.json({ error: "Datos inválidos" }, { status: 400 });
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
     }
+    let data: SupportReportInput;
+    try {
+      const rawData = await request.json();
+      data = supportReportInputSchema.parse(rawData); // Validate!
+    } catch (error) {
+        console.error("Validation error:", error);
+        if (error instanceof z.ZodError) {
+          return NextResponse.json(
+            { error: "Datos inválidos", details: error.errors },
+            { status: 400 }
+          );
+        }
+        return NextResponse.json({ error: "Datos inválidos" }, { status: 400 });
+      }
 
-  try {
-    const lastReport = await prisma.soporteReport.findFirst({
-      select: { id: true },
-      orderBy: { id: 'desc' },
-    });
-    const nextNumber = (lastReport?.id || 0) + 1;
-    const numeroReporte = `SS-${nextNumber.toString().padStart(4, '0')}`;
+    try {
+      const lastReport = await prisma.soporteReport.findFirst({
+        select: { id: true },
+        orderBy: { id: 'desc' },
+      });
+      const nextNumber = (lastReport?.id || 0) + 1;
+      const numeroReporte = `SS-${nextNumber.toString().padStart(4, '0')}`;
 
-    const newReport = await prisma.soporteReport.create({
-      data: {
-        numeroReporte,
-        userId: currentUser.id,
-        categoriaId: data.categoriaId,
-        descripcion: data.descripcion,
-        reporteArea: data.reporteArea,
-        tipoUsuario: data.tipoUsuario,
-        solucion: data.solucion,
-        notasTecnicas: data.notasTecnicas,
-        estado: data.estado,
-        fueSolucionado: data.fueSolucionado,
-      },
-    });
-    return NextResponse.json(newReport, { status: 201 });
-  } catch (error) {
-    console.error('Error creating support report:', error);
-    return NextResponse.json(
-      { error: 'Error al crear el reporte de soporte' },
-      { status: 500 }
-    );
-  }
+      const newReport = await prisma.soporteReport.create({
+        data: {
+          numeroReporte,
+          userId: currentUser.id,
+          categoriaId: data.categoriaId,
+          reporteAreaId: data.reporteAreaId, // Use ID
+          tipoUsuario: data.tipoUsuario,
+          nombrePersona: data.nombrePersona, // Save name
+          ubicacionDetalle: data.ubicacionDetalle, // Save detail
+          descripcion: data.descripcion,
+          solucion: data.solucion,
+          notas: data.notas, // Renamed field
+          estado: data.estado,
+          fueSolucionado: data.fueSolucionado,
+        },
+      });
+      return NextResponse.json(newReport, { status: 201 });
+    } catch (error) {
+      console.error('Error creating support report:', error);
+      return NextResponse.json(
+        { error: 'Error al crear el reporte de soporte' },
+        { status: 500 }
+      );
+    }
 }
 
 // --- GET: List support reports (paginated) ---
@@ -99,8 +104,9 @@ export async function GET(request: Request) {
                 id: true,
                 numeroReporte: true,
                 fecha: true,
-                reporteArea: true,
+                reporteAreaId: true, // Select ID
                 tipoUsuario: true,
+                nombrePersona: true, // Select person name
                 estado: true,
                 fueSolucionado: true,
                 categoria: {
@@ -113,6 +119,11 @@ export async function GET(request: Request) {
                         nombre: true,
                     },
                 },
+                area: { // Include relation
+                    select: {
+                        nombre: true
+                    }
+                }
             },
             skip,
             take: pageSize,

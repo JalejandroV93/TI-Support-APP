@@ -12,7 +12,9 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { SupportReportFormState } from "@/types/support";
 import { useEffect, useState } from "react";
-import { ReporteArea, TipoUsuario } from "@prisma/client";
+import { TipoUsuario } from "@prisma/client";
+import { Input } from "@/components/ui/input"; // Import Input
+import { Switch } from "@/components/ui/switch";
 
 interface SupportFormProps {
   form: SupportReportFormState;
@@ -22,11 +24,12 @@ interface SupportFormProps {
   ) => void;
   handleSelectChange: (
     name: keyof SupportReportFormState,
-    value: string | number
-  ) => void; // Keep as string | number
+    value: string | number | boolean
+  ) => void;
   handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
   isSubmitting: boolean;
   categories: { id: number; nombre: string }[]; // Expect categories
+  areas: { id: number; nombre: string }[]; // Add areas prop
 }
 
 const SupportForm: React.FC<SupportFormProps> = ({
@@ -38,25 +41,44 @@ const SupportForm: React.FC<SupportFormProps> = ({
   isSubmitting,
   categories,
 }) => {
+  const [tipoUsuarioOptions, setTipoUsuarioOptions] = useState<string[]>([]);
+  const [showSolution, setShowSolution] = useState(form.fueSolucionado); // Control solution field visibility
+  const [areas, setAreas] = useState<{ id: number; nombre: string }[]>([]);
 
-    // --- State for Select Options ---
-    const [tipoUsuarioOptions, setTipoUsuarioOptions] = useState<string[]>([]);
-    const [reporteAreaOptions, setReporteAreaOptions] = useState<string[]>([]);
+  useEffect(() => {
+    setTipoUsuarioOptions(Object.values(TipoUsuario));
+    setShowSolution(form.fueSolucionado); //If in edit mode, get data of solved
+  }, [form.fueSolucionado]);
+  
+  useEffect(() => {
+    const fetchAreas = async () => {
+      try {
+        const res = await fetch("/api/v1/settings/areas");
+        if (res.ok) {
+          const areasData = await res.json();
+          setAreas(areasData); // Assuming the API returns an array of { id, nombre }
+        } else {
+          console.error("Failed to fetch areas:", await res.text());
+        }
+      } catch (error) {
+        console.error("Error fetching areas:", error);
+      }
+    };
 
-    // --- Load enum values on component mount ---
-    useEffect(() => {
-      // Dynamically get enum values
-      setTipoUsuarioOptions(Object.values(TipoUsuario));
-      setReporteAreaOptions(Object.values(ReporteArea));
-    }, []);
+    fetchAreas();
+  }, []);
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Categoría */}
       <div>
         <Label htmlFor="categoriaId">Categoría *</Label>
         <Select
-            onValueChange={(value) => handleSelectChange("categoriaId", parseInt(value, 10))} // Parse to number here!
-            value={form.categoriaId.toString()} // Convert to string for the Select component
-          >
+          onValueChange={(value) =>
+            handleSelectChange("categoriaId", parseInt(value, 10))
+          } // Parse to number here!
+          value={form.categoriaId.toString()} // Convert to string for the Select component
+        >
           <SelectTrigger>
             <SelectValue placeholder="Selecciona una categoría" />
           </SelectTrigger>
@@ -74,7 +96,8 @@ const SupportForm: React.FC<SupportFormProps> = ({
       </div>
 
       {/* Tipo de Usuario (Select) */}
-      <div className="col-span-full md:col-span-1">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
           <Label htmlFor="tipoUsuario">Tipo de Usuario *</Label>
           <Select
             onValueChange={(value) => handleSelectChange("tipoUsuario", value)}
@@ -91,56 +114,76 @@ const SupportForm: React.FC<SupportFormProps> = ({
               ))}
             </SelectContent>
           </Select>
+          {errors.tipoUsuario && (
+            <p className="text-red-500 text-sm">{errors.tipoUsuario}</p>
+          )}
         </div>
 
+        {/* Nombre de la Persona */}
+        <div>
+          <Label htmlFor="nombrePersona">Nombre de la Persona</Label>
+          <Input
+            id="nombrePersona"
+            name="nombrePersona"
+            value={form.nombrePersona || ""}
+            onChange={handleChange}
+            placeholder="Nombre de la persona"
+          />
+          {errors.nombrePersona && (
+            <p className="text-red-500 text-sm">{errors.nombrePersona}</p>
+          )}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Area de Reporte (Select) */}
-        <div className="col-span-full md:col-span-1">
-            <Label htmlFor="reporteArea">Area de Reporte *</Label>
-            <Select
-              onValueChange={(value) => handleSelectChange("reporteArea", value)}
-              value={form.reporteArea}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecciona..." />
-              </SelectTrigger>
-              <SelectContent>
-                {reporteAreaOptions.map((option) => (
-                  <SelectItem key={option} value={option}>
-                    {option}
+        <div>
+          <Label htmlFor="reporteAreaId">Area de Reporte *</Label>
+          <Select
+            onValueChange={(value) =>
+              handleSelectChange("reporteAreaId", parseInt(value, 10))
+            } // Parse to number
+            value={form.reporteAreaId.toString()} // Convert to string for Select
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecciona..." />
+            </SelectTrigger>
+            <SelectContent>
+              {areas.map(
+                (
+                  area // Use areas prop
+                ) => (
+                  <SelectItem key={area.id} value={area.id.toString()}>
+                    {area.nombre}
                   </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                )
+              )}
+            </SelectContent>
+          </Select>
+          {errors.reporteAreaId && (
+            <p className="text-red-500 text-sm">{errors.reporteAreaId}</p>
+          )}
         </div>
-        
-        {/* Solución (Textarea) */}
-      <div className="space-y-2">
-        <Label htmlFor="solucion">Solución</Label>
-        <Textarea
-          id="solucion"
-          name="solucion"
-          value={form.solucion || ""}
-          onChange={handleChange}
-        />
-        {errors.solucion && (
-          <p className="text-red-500 text-sm">{errors.solucion}</p>
-        )}
+
+        {/* Ubicación Detalle (Input) */}
+        <div>
+          <Label htmlFor="ubicacionDetalle">
+            Ubicación Detallada (Opcional)
+          </Label>
+          <Input
+            id="ubicacionDetalle"
+            name="ubicacionDetalle"
+            value={form.ubicacionDetalle || ""}
+            onChange={handleChange}
+            placeholder="Ej: Salón 101, Edificio A"
+          />
+          {errors.ubicacionDetalle && (
+            <p className="text-red-500 text-sm">{errors.ubicacionDetalle}</p>
+          )}
+        </div>
       </div>
 
-      {/* Notas Técnicas (Textarea) */}
-      <div className="space-y-2">
-        <Label htmlFor="notasTecnicas">Notas Técnicas</Label>
-        <Textarea
-          id="notasTecnicas"
-          name="notasTecnicas"
-          value={form.notasTecnicas || ""}
-          onChange={handleChange}
-        />
-        {errors.notasTecnicas && (
-          <p className="text-red-500 text-sm">{errors.notasTecnicas}</p>
-        )}
-      </div>
-
+      {/* Descripción (Textarea) */}
       <div>
         <Label htmlFor="descripcion">Descripción *</Label>
         <Textarea
@@ -153,6 +196,45 @@ const SupportForm: React.FC<SupportFormProps> = ({
         {errors.descripcion && (
           <p className="text-red-500 text-sm">{errors.descripcion}</p>
         )}
+      </div>
+
+      <div className="flex items-center gap-4">
+        <Label htmlFor="fueSolucionado">¿Fue Solucionado?</Label>
+        <Switch
+          checked={form.fueSolucionado}
+          onCheckedChange={(checked) => {
+            handleSelectChange("fueSolucionado", checked);
+            setShowSolution(checked);
+          }}
+        />
+      </div>
+
+      {/* Solución (Textarea) - Conditional Rendering */}
+      {showSolution && (
+        <div>
+          <Label htmlFor="solucion">Solución</Label>
+          <Textarea
+            id="solucion"
+            name="solucion"
+            value={form.solucion || ""}
+            onChange={handleChange}
+          />
+          {errors.solucion && (
+            <p className="text-red-500 text-sm">{errors.solucion}</p>
+          )}
+        </div>
+      )}
+
+      {/* Notas (Textarea) */}
+      <div>
+        <Label htmlFor="notas">Notas</Label>
+        <Textarea
+          id="notas"
+          name="notas"
+          value={form.notas || ""}
+          onChange={handleChange}
+        />
+        {errors.notas && <p className="text-red-500 text-sm">{errors.notas}</p>}
       </div>
 
       <Button type="submit" disabled={isSubmitting}>
