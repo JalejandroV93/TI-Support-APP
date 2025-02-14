@@ -70,11 +70,11 @@ export function getMenuList(pathname: string, user: UserPayload | null): Group[]
           roles: ['ADMIN', 'COLABORADOR'],
         },
         {
-          href: "/v1/reports/soporte-en-sitio",
-          label: "Soporte",
-          icon: HeartHandshake,
-          roles: ['ADMIN', 'COLABORADOR'],
-        }
+          href: "/v1/reports/support",   
+          label: "Soporte en Sitio",    
+          icon: HeartHandshake,    
+          roles: ['ADMIN', 'COLABORADOR'],   
+          },
       ]
     }
   ];

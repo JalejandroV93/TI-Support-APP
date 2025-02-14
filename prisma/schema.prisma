@@ -33,7 +33,6 @@ model Usuario {
   mantenimientoReports MantenimientoReport[]
   redReports           RedReport[]
   aulaMovilReports     AulaMovilReport[]
-
 }
 
 enum Rol {
@@ -52,14 +51,15 @@ model SoporteCategoria {
 
 // 3. Reporte de Soportes (referenciando la tabla de categorías)
 model SoporteReport {
-  id          Int      @id @default(autoincrement())
-  userId      Int
-  categoriaId Int // Clave foránea a SoporteCategoria
-  fecha       DateTime @default(now())
-  descripcion String // Descripción del soporte prestado
-
-  usuario   Usuario          @relation(fields: [userId], references: [id])
-  categoria SoporteCategoria @relation(fields: [categoriaId], references: [id])
+  id            Int              @id @default(autoincrement())
+  numeroReporte String           @unique @default("SS-")
+  userId        Int
+  categoriaId   Int
+  fecha         DateTime         @default(now())
+  descripcion   String
+  
+  usuario       Usuario          @relation(fields: [userId], references: [id])
+  categoria     SoporteCategoria @relation(fields: [categoriaId], references: [id])
 }
 
 // 4. Reporte de Mantenimiento (con mayor detalle del proceso)
@@ -100,43 +100,43 @@ enum TipoMantenimiento {
 
 // 5. Reporte de Red (más abierto para registrar daño, cambio, reparación, etc.)
 model RedReport {
-   id              Int       @id @default(autoincrement())
-  numeroReporte   String    @unique @default("RR-")
-  userId          Int
-  fechaRegistro   DateTime  @default(now()) // Fecha de registro del reporte
-  fechaIncidente  DateTime  // Fecha del incidente (puede ser anterior)
-  ubicacion       String?   // Ej: Laboratorio 1, Oficina de Rectora, etc.
-  tipo            RedTipo   // Tipo de reporte (daño, cambio, reparación, u otro)
-  descripcion     String?   // Detalle breve de la incidencia (sin sobrecargar al colaborador)
-  dispositivo     String?   // Ej: Router, Switch, Punto de Acceso, Cableado
-  direccionIP     String?   // Si aplica (para dispositivos con IP)
+  id             Int       @id @default(autoincrement())
+  numeroReporte  String    @unique @default("RR-")
+  userId         Int
+  fechaRegistro  DateTime  @default(now()) // Fecha de registro del reporte
+  fechaIncidente DateTime // Fecha del incidente (puede ser anterior)
+  ubicacion      String? // Ej: Laboratorio 1, Oficina de Rectora, etc.
+  tipo           RedTipo // Tipo de reporte (daño, cambio, reparación, u otro)
+  descripcion    String? // Detalle breve de la incidencia (sin sobrecargar al colaborador)
+  dispositivo    String? // Ej: Router, Switch, Punto de Acceso, Cableado
+  direccionIP    String? // Si aplica (para dispositivos con IP)
   // direccionMAC    String?   // Si aplica (para dispositivos con MAC)  <- REMOVE THIS
-  estado          RedEstado // NUEVO: Abierto, En Proceso, Resuelto, Cerrado
-  prioridad       Prioridad // NUEVO: Baja, Media, Alta, Urgente
-  tecnico         String?   // Nombre del técnico asignado (opcional)
-  notasTecnicas   String?   // Notas del técnico (para detalles técnicos)
-  solucion        String?    // Detalles sobre la solución aplicada.
-  usuario         Usuario   @relation(fields: [userId], references: [id])
+  estado         RedEstado // NUEVO: Abierto, En Proceso, Resuelto, Cerrado
+  prioridad      Prioridad // NUEVO: Baja, Media, Alta, Urgente
+  tecnico        String? // Nombre del técnico asignado (opcional)
+  notasTecnicas  String? // Notas del técnico (para detalles técnicos)
+  solucion       String? // Detalles sobre la solución aplicada.
+  usuario        Usuario   @relation(fields: [userId], references: [id])
 
-    @@index([userId])
-    @@index([fechaIncidente])
-    @@index([tecnico])
-    @@index([estado])
+  @@index([userId])
+  @@index([fechaIncidente])
+  @@index([tecnico])
+  @@index([estado])
 }
 
 enum RedTipo {
-  DANIO       // Reporte de daño
-  CAMBIO      // Reporte de cambio de equipo/dispositivo
-  REPARACION  // Reporte de reparación
+  DANIO // Reporte de daño
+  CAMBIO // Reporte de cambio de equipo/dispositivo
+  REPARACION // Reporte de reparación
   MANTENIMIENTO // Mantenimiento programado
-  OTRO        // Otro tipo de incidencia
+  OTRO // Otro tipo de incidencia
 }
 
 enum RedEstado {
-    ABIERTO
-    EN_PROCESO
-    RESUELTO
-    CERRADO
+  ABIERTO
+  EN_PROCESO
+  RESUELTO
+  CERRADO
 }
 
 enum Prioridad {
@@ -145,19 +145,20 @@ enum Prioridad {
   ALTA
   URGENTE
 }
+
 // 6. Reporte de Aulas Móviles
 model AulaMovilReport {
-  id              Int      @id @default(autoincrement())
-  numeroReporte   String   @unique @default("AM-")
+  id              Int         @id @default(autoincrement())
+  numeroReporte   String      @unique @default("AM-")
   userId          Int
-  fechaRegistro   DateTime @default(now())
-  fechaIncidente  DateTime  // Fecha del incidente (puede ser anterior)
-  tabletId        String?  // Identificador opcional de la tablet
-  novedades       String   // Descripción de la novedad o incidencia (obligatoria)
+  fechaRegistro   DateTime    @default(now())
+  fechaIncidente  DateTime // Fecha del incidente (puede ser anterior)
+  tabletId        String? // Identificador opcional de la tablet
+  novedades       String // Descripción de la novedad o incidencia (obligatoria)
   tipoNovedad     TipoNovedad // NUEVO: Tipo de novedad (instalación, daño, etc.)
-  estudiante      String?  // Nombre del estudiante (si aplica)
-  gradoEstudiante String?  // Grado del estudiante (si aplica)
-  observaciones   String?  // Observaciones adicionales (opcional)
+  estudiante      String? // Nombre del estudiante (si aplica)
+  gradoEstudiante String? // Grado del estudiante (si aplica)
+  observaciones   String? // Observaciones adicionales (opcional)
 
   usuario Usuario @relation(fields: [userId], references: [id])
 
