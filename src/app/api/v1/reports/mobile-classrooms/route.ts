@@ -13,6 +13,8 @@ const mobileClassroomsReportInputSchema = z.object({
   estudiante: z.string().optional().nullable(),
   gradoEstudiante: z.string().optional().nullable(),
   observaciones: z.string().optional().nullable(),
+  docente: z.string().optional().nullable(),    // ADDED
+  salon: z.string().optional().nullable(),
 });
 
 type MobileClassroomsReportInput = z.infer<
@@ -48,6 +50,8 @@ export async function GET(request: Request) {
                 fechaIncidente: true,
                 tabletId: true,
                 tipoNovedad: true,
+                docente: true, // ADDED
+                salon: true, // ADDED
                 usuario: {
                     select: {
                         nombre: true,

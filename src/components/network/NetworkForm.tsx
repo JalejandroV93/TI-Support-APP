@@ -14,8 +14,10 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import DatePickerField from "@/components/maintenance/DatePickerField";
 import TechnicianSelect from "@/components/maintenance/TechnicianSelect";
-import { NetworkReportFormState } from "@/types/network";
+import { NetworkReportFormState } from "@/types/network"; // Import
 import { Technician } from "@/types/global";  // Import from global
+import { Switch } from "@/components/ui/switch"; // Import Switch
+import { useEffect, useState } from "react";
 
 interface NetworkFormProps {
   form: NetworkReportFormState;
@@ -47,6 +49,13 @@ const NetworkForm: React.FC<NetworkFormProps> = ({
   submitButtonText,
   onCancel,
 }) => {
+
+    const [showSolution, setShowSolution] = useState(form.fueSolucionado); // Control solution field visibility
+
+    useEffect(() => {
+        setShowSolution(form.fueSolucionado); //If in edit mode, get data of solved
+    }, [form.fueSolucionado]);
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <Card>
@@ -62,8 +71,6 @@ const NetworkForm: React.FC<NetworkFormProps> = ({
             required
             error={errors.fechaIncidente}
           />
-
-          {/* ... (rest of your NetworkForm code, using handleDateChange, handleSelectChange, etc.) ... */}
           <div className="space-y-2">
             <Label htmlFor="ubicacion">Ubicación</Label>
             <Input
@@ -111,20 +118,6 @@ const NetworkForm: React.FC<NetworkFormProps> = ({
               <p className="text-red-500 text-sm">{errors.dispositivo}</p>
             )}
           </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="direccionIP">Dirección IP</Label>
-            <Input
-              id="direccionIP"
-              name="direccionIP"
-              value={form.direccionIP || ""}
-              onChange={handleChange}
-            />
-            {errors.direccionIP && (
-              <p className="text-red-500 text-sm">{errors.direccionIP}</p>
-            )}
-          </div>
-          
           <div className="space-y-2">
             <Label htmlFor="prioridad">Prioridad *</Label>
             <Select
@@ -168,22 +161,22 @@ const NetworkForm: React.FC<NetworkFormProps> = ({
 
       <Card>
         <CardHeader>
-          <CardTitle>Notas Técnicas y Solución</CardTitle>
+          <CardTitle>Solución</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="notasTecnicas">Notas Técnicas</Label>
-            <Textarea
-              id="notasTecnicas"
-              name="notasTecnicas"
-              value={form.notasTecnicas || ""}
-              onChange={handleChange}
+        <div className="flex items-center gap-4">
+            <Label htmlFor="fueSolucionado">¿Fue Solucionado?</Label>
+            <Switch
+              checked={form.fueSolucionado}
+              onCheckedChange={(checked) => {
+                handleSelectChange("fueSolucionado", checked.toString());
+                setShowSolution(checked);  // Control visibility
+              }}
             />
-            {errors.notasTecnicas && (
-              <p className="text-red-500 text-sm">{errors.notasTecnicas}</p>
-            )}
-          </div>
+            </div>
 
+            {/* Solución (Textarea) - Conditional Rendering */}
+          {showSolution && (
           <div className="space-y-2">
             <Label htmlFor="solucion">Solución</Label>
             <Textarea
@@ -196,25 +189,7 @@ const NetworkForm: React.FC<NetworkFormProps> = ({
               <p className="text-red-500 text-sm">{errors.solucion}</p>
             )}
           </div>
-            <div className="space-y-2">
-                        <Label htmlFor="estado">Estado *</Label>
-                        <Select
-                        onValueChange={(value) => handleSelectChange("estado", value)}
-                        value={form.estado}
-                        >
-                        <SelectTrigger>
-                            <SelectValue placeholder="Selecciona el estado" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {["ABIERTO", "EN_PROCESO", "RESUELTO", "CERRADO"].map((estado) => (
-                            <SelectItem key={estado} value={estado}>
-                                {estado}
-                            </SelectItem>
-                            ))}
-                        </SelectContent>
-                        </Select>
-                        {errors.estado && <p className="text-red-500 text-sm">{errors.estado}</p>}
-                </div>
+            )}
         </CardContent>
       </Card>
 

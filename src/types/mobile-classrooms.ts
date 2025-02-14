@@ -9,6 +9,8 @@ export interface MobileClassroomsReportFormState {
     estudiante?: string | null;
     gradoEstudiante?: string | null;
     observaciones?: string | null;
+    docente?: string | null;   // ADDED
+    salon?: string | null;    // ADDED
 }
 
 export interface MobileClassroomsReport extends MobileClassroomsReportFormState {

@@ -11,11 +11,17 @@ const areaSchema = z.object({
 
 type AreaInput = z.infer<typeof areaSchema>;
 
-export async function GET() {
+export async function GET(request: Request) {  // Added request parameter
     const currentUser = await getCurrentUser();
     if (!currentUser || currentUser.rol !== "ADMIN") {
         return NextResponse.json({ error: "No autorizado" }, { status: 403 });
     }
+
+    const { searchParams } = new URL(request.url); // Get search params
+    const page = parseInt(searchParams.get("page") ?? "1", 10) || 1; // Default page 1
+    const pageSize = parseInt(searchParams.get("pageSize") ?? "10", 10) || 10; // Default pageSize 10
+
+    const skip = (page - 1) * pageSize;
 
     try {
         const areas = await prisma.reporteArea.findMany({
@@ -24,13 +30,19 @@ export async function GET() {
                 nombre: true,
                 descripcion: true,
             },
+            skip,  // Skip records
+            take: pageSize, // Take records
         });
-        return NextResponse.json(areas);
+
+        const totalCount = await prisma.reporteArea.count(); // Get total count for pagination
+
+        return NextResponse.json({ areas, totalCount, page, pageSize }); // Return totalCount
     } catch (error) {
         console.error("Error fetching areas:", error);
         return NextResponse.json({ error: "Error al obtener las áreas" }, { status: 500 });
     }
 }
+
 
 export async function POST(request: Request) {
   const currentUser = await getCurrentUser();

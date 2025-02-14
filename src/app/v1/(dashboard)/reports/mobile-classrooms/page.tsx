@@ -153,6 +153,12 @@ export default function MobileClassroomsReportsPage() {
                     <Tablet className="w-4 h-4" />
                     Tablet {report.tabletId || "N/A"}
                   </p>
+                  {report.docente && (
+                    <p className="ml-6">Docente: {report.docente}</p>
+                  )}
+                  {report.salon && (
+                    <p className="ml-6">Salón: {report.salon}</p>
+                  )}
                 </div>
               </CardContent>
               <CardFooter className="flex justify-end">

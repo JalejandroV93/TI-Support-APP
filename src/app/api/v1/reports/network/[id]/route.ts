@@ -13,12 +13,12 @@ const networkReportUpdateSchema = z
     tipo: z.nativeEnum(RedTipo).optional(),
     descripcion: z.string().optional().nullable(),
     dispositivo: z.string().optional().nullable(),
-    direccionIP: z.string().optional().nullable(),
     estado: z.nativeEnum(RedEstado).optional(),
     prioridad: z.nativeEnum(Prioridad).optional(),
     tecnico: z.string().optional().nullable(),
-    notasTecnicas: z.string().optional().nullable(),
     solucion: z.string().optional().nullable(),
+    fueSolucionado: z.boolean().optional(),  // ADDED
+
   })
   .strict();
 
@@ -61,12 +61,11 @@ export async function GET(
       tipo: true,
       descripcion: true,
       dispositivo: true,
-      direccionIP: true,
       estado: true,
       prioridad: true,
       tecnico: true,
-      notasTecnicas: true,
       solucion: true,
+      fueSolucionado: true, 
       usuario: {
         select: {
           nombre: true,
@@ -146,10 +145,9 @@ export async function PUT(
         ubicacion: data.ubicacion === null ? null : data.ubicacion,
         descripcion: data.descripcion === null ? null : data.descripcion,
         dispositivo: data.dispositivo === null ? null : data.dispositivo,
-        direccionIP: data.direccionIP === null ? null : data.direccionIP,
         tecnico: data.tecnico === null ? null : data.tecnico,
-        notasTecnicas: data.notasTecnicas === null ? null : data.notasTecnicas,
         solucion: data.solucion === null ? null : data.solucion,
+        fueSolucionado: data.fueSolucionado ?? undefined,
       },
     });
     return NextResponse.json(updatedReport);

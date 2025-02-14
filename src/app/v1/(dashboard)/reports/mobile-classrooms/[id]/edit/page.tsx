@@ -25,6 +25,8 @@ const loadingState: MobileClassroomsReportFormState = {
   estudiante: "",
   gradoEstudiante: "",
   observaciones: "",
+  docente: "",    // ADDED
+  salon: "",     // ADDED
 };
 
 const EditMobileClassroomsReport = ({
@@ -36,7 +38,7 @@ const EditMobileClassroomsReport = ({
   const [errors, setErrors] = useState<
     Partial<Record<keyof MobileClassroomsReportFormState, string>>
   >({});
-  const [, setSubmitError] = useState<string | null>(null); // Keep submit error separate
+  const [ , setSubmitError] = useState<string | null>(null); // Keep submit error separate
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loadingReport, setLoadingReport] = useState(true);
   const router = useRouter();
@@ -64,6 +66,8 @@ const EditMobileClassroomsReport = ({
             estudiante: data.estudiante,
             gradoEstudiante: data.gradoEstudiante,
             observaciones: data.observaciones,
+            docente: data.docente,    // ADDED
+            salon: data.salon,        // ADDED
           };
 
           setForm(reportData);
@@ -129,7 +133,7 @@ const EditMobileClassroomsReport = ({
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setSubmitError(null);
+    setSubmitError(null); //Clear error
     const validationErrors = validate();
 
     if (Object.keys(validationErrors).length > 0) {

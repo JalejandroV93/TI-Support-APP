@@ -23,7 +23,6 @@ const networkReportInputSchema = z.object({
 type NetworkReportInput = z.infer<typeof networkReportInputSchema>;
 
 
-// GET: List reports (paginated)
 export async function GET(request: Request) {
   const currentUser = await getCurrentUser();
   if (!currentUser) {
@@ -56,6 +55,7 @@ export async function GET(request: Request) {
         estado: true,
         prioridad: true,
         tecnico: true,
+        fueSolucionado: true, // ADDED
         usuario: {
           select: {
             nombre: true,

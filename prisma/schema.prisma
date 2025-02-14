@@ -51,25 +51,25 @@ model SoporteCategoria {
 
 // 3. Reporte de Soportes (referenciando la tabla de categorías)
 model SoporteReport {
-  id              Int              @id @default(autoincrement())
-  numeroReporte   String           @unique @default("SS-")
-  userId          Int
-  categoriaId     Int
-  fecha           DateTime         @default(now())
-  reporteAreaId   Int  // Changed: Now references the ReporteArea model
-  tipoUsuario     TipoUsuario
-  nombrePersona   String? // NEW: Name of the person reporting/supported
+  id               Int           @id @default(autoincrement())
+  numeroReporte    String        @unique @default("SS-")
+  userId           Int
+  categoriaId      Int
+  fecha            DateTime      @default(now())
+  reporteAreaId    Int // Changed: Now references the ReporteArea model
+  tipoUsuario      TipoUsuario
+  nombrePersona    String? // NEW: Name of the person reporting/supported
   ubicacionDetalle String? // NEW: Detailed location (optional)
-  descripcion     String
-  solucion        String?
-  estado          SoporteEstado   @default(ABIERTO)
-  fueSolucionado  Boolean        @default(false)
-  notas           String?          // Renamed: "Notas Técnicas" to "Notas"
-  fechaSolucion   DateTime?
+  descripcion      String
+  solucion         String?
+  estado           SoporteEstado @default(ABIERTO)
+  fueSolucionado   Boolean       @default(false)
+  notas            String? // Renamed: "Notas Técnicas" to "Notas"
+  fechaSolucion    DateTime?
 
-  usuario         Usuario          @relation(fields: [userId], references: [id])
-  categoria       SoporteCategoria @relation(fields: [categoriaId], references: [id])
-  area            ReporteArea      @relation(fields: [reporteAreaId], references: [id]) // Relation to ReporteArea
+  usuario   Usuario          @relation(fields: [userId], references: [id])
+  categoria SoporteCategoria @relation(fields: [categoriaId], references: [id])
+  area      ReporteArea      @relation(fields: [reporteAreaId], references: [id]) // Relation to ReporteArea
 
   @@index([userId])
   @@index([fecha])
@@ -78,12 +78,11 @@ model SoporteReport {
 
 // NEW: Model for Report Areas (Configurable)
 model ReporteArea {
-  id            Int     @id @default(autoincrement())
-  nombre        String  @unique
-  descripcion   String?
+  id             Int             @id @default(autoincrement())
+  nombre         String          @unique
+  descripcion    String?
   soporteReports SoporteReport[]
 }
-
 
 enum TipoUsuario {
   DOCENTE
@@ -97,7 +96,7 @@ enum SoporteEstado {
   EN_PROCESO
   PENDIENTE_POR_TERCERO // For cases where you depend on an external provider.
   RESUELTO
-  CERRADO  // Use this when you are sure no more actions are needed.
+  CERRADO // Use this when you are sure no more actions are needed.
 }
 
 // 4. Reporte de Mantenimiento (con mayor detalle del proceso)
@@ -148,12 +147,12 @@ model RedReport {
   descripcion    String? // Detalle breve de la incidencia (sin sobrecargar al colaborador)
   dispositivo    String? // Ej: Router, Switch, Punto de Acceso, Cableado
   direccionIP    String? // Si aplica (para dispositivos con IP)
-  // direccionMAC    String?   // Si aplica (para dispositivos con MAC)  <- REMOVE THIS
   estado         RedEstado // NUEVO: Abierto, En Proceso, Resuelto, Cerrado
   prioridad      Prioridad // NUEVO: Baja, Media, Alta, Urgente
   tecnico        String? // Nombre del técnico asignado (opcional)
   notasTecnicas  String? // Notas del técnico (para detalles técnicos)
   solucion       String? // Detalles sobre la solución aplicada.
+  fueSolucionado Boolean   @default(false) // ADDED THIS.
   usuario        Usuario   @relation(fields: [userId], references: [id])
 
   @@index([userId])
@@ -197,8 +196,10 @@ model AulaMovilReport {
   estudiante      String? // Nombre del estudiante (si aplica)
   gradoEstudiante String? // Grado del estudiante (si aplica)
   observaciones   String? // Observaciones adicionales (opcional)
-
-  usuario Usuario @relation(fields: [userId], references: [id])
+  docente         String? // ADDED.
+  salon           String? // ADDED
+  
+  usuario         Usuario     @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([fechaIncidente])

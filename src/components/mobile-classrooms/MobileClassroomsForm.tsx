@@ -84,7 +84,16 @@ const MobileClassroomsForm: React.FC<MobileClassroomsFormProps> = ({
                             <SelectContent>
                                 {Object.values(TipoNovedad).map((tipo) => (
                                     <SelectItem key={tipo} value={tipo}>
-                                        {tipo}
+                                        {/* Display user-friendly names for enum values */}
+                                        {tipo
+                                            .split("_")
+                                            .map((word) =>
+                                                word === "DANIO"
+                                                ? "Daño"
+                                                : word.charAt(0).toUpperCase() +
+                                                    word.slice(1).toLowerCase()
+                                            )
+                                            .join(" ")}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
@@ -113,6 +122,31 @@ const MobileClassroomsForm: React.FC<MobileClassroomsFormProps> = ({
                         />
                         {errors.gradoEstudiante && <p className="text-red-500 text-sm">{errors.gradoEstudiante}</p>}
                     </div>
+
+                    {/* Docente (Optional) */}
+                    <div className="space-y-2">
+                        <Label htmlFor="docente">Docente (Opcional)</Label>
+                        <Input
+                            id="docente"
+                            name="docente"
+                            value={form.docente || ""}
+                            onChange={handleChange}
+                        />
+                        {errors.docente && <p className="text-red-500 text-sm">{errors.docente}</p>}
+                    </div>
+
+                    {/* Salón (Optional) */}
+                    <div className="space-y-2">
+                        <Label htmlFor="salon">Salón (Opcional)</Label>
+                        <Input
+                            id="salon"
+                            name="salon"
+                            value={form.salon || ""}
+                            onChange={handleChange}
+                        />
+                        {errors.salon && <p className="text-red-500 text-sm">{errors.salon}</p>}
+                    </div>
+
                     <div className="space-y-2 col-span-full">
                         <Label htmlFor="observaciones">Observaciones (Opcional)</Label>
                         <Textarea

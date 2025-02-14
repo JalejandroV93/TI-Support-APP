@@ -11,25 +11,39 @@ const categorySchema = z.object({
 
 type CategoryInput = z.infer<typeof categorySchema>;
 
-export async function GET() {
-    const currentUser = await getCurrentUser();
-    if (!currentUser || currentUser.rol !== "ADMIN") {
-        return NextResponse.json({ error: "No autorizado" }, { status: 403 });
-    }
+export async function GET(request: Request) { // Add request parameter
+  const currentUser = await getCurrentUser();  // Check user
+  if (!currentUser) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+  }
+  
+  if (currentUser.rol !== 'ADMIN' && currentUser.rol !== 'COLABORADOR') {  
+      return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
+  }
 
-    try {
-        const categories = await prisma.soporteCategoria.findMany({
-            select: {
-                id: true,
-                nombre: true,
-                descripcion: true,
-            },
-        });
-        return NextResponse.json(categories);
-    } catch (error) {
-        console.error("Error fetching categories:", error);
-        return NextResponse.json({ error: "Error al obtener las categorías" }, { status: 500 });
-    }
+  const { searchParams } = new URL(request.url);
+  const page = parseInt(searchParams.get("page") ?? "1", 10) || 1; // Get page, default 1
+  const pageSize = parseInt(searchParams.get("pageSize") ?? "10", 10) || 10; // Get pageSize, default 10
+  const skip = (page - 1) * pageSize;
+
+  try {
+      const categories = await prisma.soporteCategoria.findMany({
+          select: {
+              id: true,
+              nombre: true,
+              descripcion: true, // Include description
+          },
+          skip, // Use skip for pagination
+          take: pageSize, // Use take for pagination
+      });
+
+      const totalCount = await prisma.soporteCategoria.count();  // Add count
+
+      return NextResponse.json({ categories, totalCount, page, pageSize }); // Return totalCount
+  } catch (error) {
+      console.error("Error fetching support categories:", error);
+      return NextResponse.json({ error: "Error al obtener las categorías de soporte" }, { status: 500 });
+  }
 }
 
 export async function POST(request: Request) {

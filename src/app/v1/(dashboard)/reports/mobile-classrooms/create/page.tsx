@@ -16,6 +16,8 @@ const initialState: MobileClassroomsReportFormState = {
   estudiante: "",
   gradoEstudiante: "",
   observaciones: "",
+  docente: "",    // ADDED
+  salon: "",     // ADDED
 };
 
 const CreateMobileClassroomsReport = () => {
@@ -26,7 +28,7 @@ const CreateMobileClassroomsReport = () => {
   const [errors, setErrors] = useState<
     Partial<Record<keyof MobileClassroomsReportFormState, string>>
   >({});
-  const [, setSubmitError] = useState<string | null>(null);
+  const [, setSubmitError] = useState<string | null>(null); //Keep submit error separete.
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
@@ -77,7 +79,7 @@ const CreateMobileClassroomsReport = () => {
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsSubmitting(true);
-        setSubmitError(null);
+        setSubmitError(null); //Clear error
         const validationErrors = validate();
 
         if (Object.keys(validationErrors).length > 0) {
@@ -87,7 +89,7 @@ const CreateMobileClassroomsReport = () => {
         }
 
         if (!user) {
-            setSubmitError("No se pudo obtener el usuario. Recarga la página e intenta de nuevo.");
+            setSubmitError("No se pudo obtener el usuario. Recarga la página e intenta de nuevo."); //Use setSubmitError
             setIsSubmitting(false);
             return;
         }
@@ -103,13 +105,18 @@ const CreateMobileClassroomsReport = () => {
         }
         setIsSubmitting(false);
     };
+    //Add this for the back button
+    const handleCancel = () => {
+      router.push("/v1/reports/mobile-classrooms"); // Use router.push for navigation
+    };
 
   return (
     <div className="container mx-auto p-4 space-y-6">
       <div className="flex justify-end items-center">
-      
+      {/* Add this for the "Volver" button */}
       <Button
         onClick={() => router.back()}
+        className=""
       >
         Volver
       </Button>
@@ -132,6 +139,7 @@ const CreateMobileClassroomsReport = () => {
       handleSubmit={handleSubmit}
       isSubmitting={isSubmitting}
       submitButtonText="Crear Reporte"
+      onCancel={handleCancel} // Add the onCancel prop
       />
     </div>
   );

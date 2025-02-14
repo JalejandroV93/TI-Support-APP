@@ -13,6 +13,8 @@ const mobileClassroomsReportUpdateSchema = z.object({
     estudiante: z.string().optional().nullable(),
     gradoEstudiante: z.string().optional().nullable(),
     observaciones: z.string().optional().nullable(),
+    docente: z.string().optional().nullable(), 
+    salon: z.string().optional().nullable(), 
 }).strict();
 
 type MobileClassroomsReportInput = z.infer<typeof mobileClassroomsReportUpdateSchema>;
@@ -48,6 +50,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
             estudiante: true,
             gradoEstudiante: true,
             observaciones: true,
+            docente: true, // ADDED
+            salon: true, 
             usuario: {
                 select: {
                     nombre: true,
@@ -110,6 +114,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
                 estudiante: data.estudiante === null ? null : data.estudiante,
                 gradoEstudiante: data.gradoEstudiante === null ? null : data.gradoEstudiante,
                 observaciones: data.observaciones === null ? null : data.observaciones,
+                docente: data.docente === null ? null : data.docente, // ADDED
+                salon: data.salon === null ? null : data.salon, // ADDED
             },
         });
         return NextResponse.json(updatedReport);

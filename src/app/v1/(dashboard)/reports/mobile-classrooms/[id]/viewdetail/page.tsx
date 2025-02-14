@@ -1,7 +1,7 @@
 // src/app/v1/(dashboard)/reports/mobile-classrooms/[id]/viewdetail/page.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { format } from "date-fns";
@@ -25,7 +25,7 @@ import type { MobileClassroomsReport } from "@/types/mobile-classrooms";
 import { useMobileClassroomsReportStore } from "@/store/mobileClassroomReportStore";
 import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
 import { ReportSkeleton } from "@/components/skeletons/SkeletonsUI";
-import { use } from "react";
+
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -161,6 +161,9 @@ const MobileClassroomReportDetail = ({ params: paramsPromise }: PageProps) => {
                   label: "Grado Estudiante",
                   value: report.gradoEstudiante || "N/A",
                 },
+                // Added this
+                { label: "Docente", value: report.docente || "N/A" },
+                { label: "Salon", value: report.salon || "N/A" },
               ]}
             />
           </div>
