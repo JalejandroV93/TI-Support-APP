@@ -14,7 +14,7 @@ import {
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { SupportReportSkeleton } from "@/components/skeletons/SkeletonsUI"; // You'll need to create this
-import { Clipboard, User, Calendar, Eye } from "lucide-react";
+import { Clipboard, User, Calendar, Eye, CheckCircle, XCircle, } from "lucide-react";
 import { SupportReport } from "@/types/support"; // Import SupportReport type
 import useSWRInfinite from "swr/infinite";
 import { useCallback, useRef, useMemo } from "react";
@@ -96,6 +96,13 @@ export default function SupportReportsPage() {
         [isLoadingMore, isReachingEnd, loadMore]
       );
 
+    const getStatusLabel = (status: string) => {
+      return (
+        status.charAt(0).toUpperCase() +
+        status.slice(1).toLowerCase().replace("_", " ")
+      );
+    };
+
   if (error)
     return <div>Ocurrio un error al obtener los reportes de soporte.</div>;
 
@@ -123,6 +130,10 @@ export default function SupportReportsPage() {
                     <Clipboard className="w-5 h-5" />
                     {report.numeroReporte}
                   </div>
+                  <Badge
+                    >
+                    {getStatusLabel(report.estado)}
+                  </Badge>
                 </CardTitle>
                 <CardDescription className="flex items-center gap-2 text-sm">
                   <Calendar className="w-4 h-4" />
@@ -142,6 +153,23 @@ export default function SupportReportsPage() {
                   {report.categoria.nombre}
                   </Badge>
                 </div>
+                </div>
+                <div className="mt-2 flex items-center gap-2">
+                    {report.fueSolucionado ? (
+                    <>
+                        <CheckCircle className="w-4 h-4 text-green-500" />
+                        <span className="text-green-600 font-medium">
+                        Solucionado
+                        </span>
+                    </>
+                    ) : (
+                    <>
+                        <XCircle className="w-4 h-4 text-red-500" />
+                        <span className="text-red-600 font-medium">
+                        No Solucionado
+                        </span>
+                    </>
+                    )}
                 </div>
               </CardContent>
               <CardFooter>

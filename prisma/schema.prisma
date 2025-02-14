@@ -56,10 +56,43 @@ model SoporteReport {
   userId        Int
   categoriaId   Int
   fecha         DateTime         @default(now())
-  descripcion   String
-  
+  reporteArea  ReporteArea       // NEW: Where the issue occurred
+  tipoUsuario  TipoUsuario       // NEW: Staff classification
+  descripcion   String          // Initial problem description
+  solucion      String?          // Solution description (nullable)
+  estado        SoporteEstado   @default(ABIERTO)   // NEW: Report status
+  fueSolucionado Boolean        @default(false) // NEW: Was it solved?
+  notasTecnicas  String?          // NEW: For technician notes.
+  fechaSolucion DateTime? //NEW: Date of resolution
+
   usuario       Usuario          @relation(fields: [userId], references: [id])
   categoria     SoporteCategoria @relation(fields: [categoriaId], references: [id])
+
+    @@index([userId])
+    @@index([fecha])
+    @@index([estado])
+}
+
+
+enum TipoUsuario {
+  DOCENTE
+  ADMINISTRATIVO
+  DIRECTIVO
+  OTRO
+}
+enum ReporteArea {
+    LABORATORIO
+    SALON
+    OFICINA
+    AUDITORIO
+    OTRO
+}
+enum SoporteEstado {
+  ABIERTO
+  EN_PROCESO
+  PENDIENTE_POR_TERCERO // For cases where you depend on an external provider.
+  RESUELTO
+  CERRADO  // Use this when you are sure no more actions are needed.
 }
 
 // 4. Reporte de Mantenimiento (con mayor detalle del proceso)

@@ -12,7 +12,7 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ReportSkeleton } from "@/components/skeletons/SkeletonsUI"; //IMPORT
-import { prisma } from "@/lib/prisma";  //IMPORT
+import { ReporteArea, SoporteEstado, TipoUsuario } from "@prisma/client";  //IMPORT
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -22,6 +22,12 @@ const loadingState: SupportReportFormState = {
     categoriaId: 0,
     descripcion: "",
     //fecha: "", Remove fecha
+    reporteArea: ReporteArea.OTRO,
+    tipoUsuario: TipoUsuario.OTRO,
+    solucion: "",
+    notasTecnicas: "",
+    estado: SoporteEstado.ABIERTO,
+    fueSolucionado: false
   };
 
 const EditSupportReportPage = ({ params: paramsPromise }: PageProps) => {
@@ -41,15 +47,25 @@ const EditSupportReportPage = ({ params: paramsPromise }: PageProps) => {
     const reportId = params.id;
 
     useEffect(() => {
-        const fetchCategories = async () => {
-          const categories = await prisma.soporteCategoria.findMany({
-            select: { id: true, nombre: true },
-          });
-          setCategories(categories);
-        };
-
-        fetchCategories();
-      }, []);
+        // --- Fetch Categories (using your API route) ---
+      const fetchCategories = async () => {
+        try {
+          const res = await fetch("/api/v1/reports/support-categories"); // New route!
+          if (res.ok) {
+            const categoriesData = await res.json();
+            setCategories(categoriesData); // Assuming the API returns an array of { id, nombre }
+          } else {
+            console.error("Failed to fetch categories:", await res.text());
+            // Consider showing an error to the user.
+          }
+        } catch (error) {
+          console.error("Error fetching categories:", error);
+          // Consider showing an error to the user.
+        }
+      };
+  
+      fetchCategories();
+    }, []);
 
     useEffect(() => {
       const fetchReport = async () => {
@@ -61,6 +77,12 @@ const EditSupportReportPage = ({ params: paramsPromise }: PageProps) => {
             const reportData: SupportReportFormState = {
                 categoriaId: data.categoriaId,
                 descripcion: data.descripcion,
+                reporteArea: data.reporteArea,   //NEW
+                tipoUsuario: data.tipoUsuario,     //NEW
+                solucion: data.solucion,            //NEW
+                notasTecnicas: data.notasTecnicas,
+                estado: data.estado,   //NEW
+                fueSolucionado: data.fueSolucionado,    //NEW
                 //fecha: data.fecha  //Remove fecha
                 //? new Date(data.fecha).toISOString()
                 //: "",
@@ -104,93 +126,95 @@ const EditSupportReportPage = ({ params: paramsPromise }: PageProps) => {
       // Ensure categoriaId is always a number
       const processedValue =
         name === "categoriaId" ? parseInt(value as string, 10) : value;
-      setForm((prevForm) => ({ ...prevForm, [name]: processedValue }));
-      setErrors((prevErrors) => ({ ...prevErrors, [name]: undefined }));
-    };
-
-    const validate = (): Partial<
-      Record<keyof SupportReportFormState, string>
-    > => {
-      const newErrors: Partial<
+        setForm((prevForm) => ({ ...prevForm, [name]: processedValue }));
+        setErrors((prevErrors) => ({ ...prevErrors, [name]: undefined }));
+      };
+  
+      const validate = (): Partial<
         Record<keyof SupportReportFormState, string>
-      > = {};
-      if (!form.categoriaId)
-        newErrors.categoriaId = "La categoría es requerida";
-      if (!form.descripcion) newErrors.descripcion = "La descripción es requerida";
-
-      return newErrors;
-    };
-
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-      e.preventDefault();
-      setIsSubmitting(true);
-      const validationErrors = validate();
-
-      if (Object.keys(validationErrors).length > 0) {
-        setErrors(validationErrors);
+      > => {
+        const newErrors: Partial<
+          Record<keyof SupportReportFormState, string>
+        > = {};
+        if (!form.categoriaId)
+          newErrors.categoriaId = "La categoría es requerida";
+        if (!form.descripcion) newErrors.descripcion = "La descripción es requerida";
+        if (!form.tipoUsuario) newErrors.tipoUsuario = "El tipo de usuario es requerido";
+        if (!form.reporteArea) newErrors.reporteArea = "El area del reporte es requerido";
+  
+        return newErrors;
+      };
+  
+      const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+        const validationErrors = validate();
+  
+        if (Object.keys(validationErrors).length > 0) {
+          setErrors(validationErrors);
+          setIsSubmitting(false);
+          return;
+        }
+  
+        if (!user) {
+          toast.error(
+            "No se pudo obtener el usuario. Recarga la página e intenta de nuevo."
+          );
+          setIsSubmitting(false);
+          return;
+        }
+  
+        const success = await updateReport(reportId, form);
+        if (success) {
+          router.push("/v1/reports/support");
+        } else {
+          toast.error(
+            useSupportReportStore.getState().error ||
+              "Error al actualizar el reporte. Inténtalo de nuevo."
+          );      }
         setIsSubmitting(false);
-        return;
+      };
+  
+  
+  
+      if (loadingReport) {
+        return <ReportSkeleton />;
       }
-
-      if (!user) {
-        toast.error(
-          "No se pudo obtener el usuario. Recarga la página e intenta de nuevo."
-        );
-        setIsSubmitting(false);
-        return;
-      }
-
-      const success = await updateReport(reportId, form);
-      if (success) {
-        router.push("/v1/reports/support");
-      } else {
-        toast.error(
-          useSupportReportStore.getState().error ||
-            "Error al actualizar el reporte. Inténtalo de nuevo."
-        );      }
-      setIsSubmitting(false);
-    };
-
-
-
-    if (loadingReport) {
-      return <ReportSkeleton />;
-    }
-
-    return (
-      <div className="container mx-auto p-4 space-y-6">
-        <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">
-          Editar Reporte de Soporte
-        </h1>
-        <Link href="/v1/reports/support">
-          <Button
-            variant="outline"
-            size="sm"
-            className="bg-[#be1522] text-white hover:bg-background"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-
-            Regresar
-          </Button>
-        </Link>
+  
+      return (
+        <div className="container mx-auto p-4 space-y-6">
+          <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold">
+            Editar Reporte de Soporte
+          </h1>
+          <Link href="/v1/reports/support">
+            <Button
+              variant="outline"
+              size="sm"
+              className="bg-[#be1522] text-white hover:bg-background"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+  
+              Regresar
+            </Button>
+          </Link>
+          </div>
+  
+          {useSupportReportStore.getState().error &&
+            toast.error(useSupportReportStore.getState().error)}
+  
+          <SupportForm
+            form={form}
+            errors={errors}
+            handleChange={handleChange}
+            //handleDateChange={handleDateChange} Remove handleDateChange
+            handleSelectChange={handleSelectChange}
+            handleSubmit={handleSubmit}
+            isSubmitting={isSubmitting}
+            categories={categories}  // Pass categories here
+          />
         </div>
-
-        {useSupportReportStore.getState().error &&
-          toast.error(useSupportReportStore.getState().error)}
-
-        <SupportForm
-          form={form}
-          errors={errors}
-          handleChange={handleChange}
-          //handleDateChange={handleDateChange} Remove handleDateChange
-          handleSelectChange={handleSelectChange}
-          handleSubmit={handleSubmit}
-          isSubmitting={isSubmitting}
-          categories={categories}  // Pass categories here
-        />
-      </div>
-    );
-  };
-
-export default EditSupportReportPage;
+      );
+    };
+  
+  export default EditSupportReportPage;

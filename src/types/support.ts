@@ -1,10 +1,16 @@
 // src/types/support.ts
-import { SoporteCategoria } from "@prisma/client"; // Import SoporteCategoria
+import { SoporteCategoria, SoporteEstado, TipoUsuario, ReporteArea } from "@prisma/client"; // Import SoporteCategoria
 
 export interface SupportReportFormState {
   categoriaId: number; // Consistent type: number
   descripcion: string;
   fecha?: string; // Optional, as it's often handled by the backend
+  reporteArea: ReporteArea;  //NEW
+  tipoUsuario: TipoUsuario; //NEW
+  solucion?: string | null;   //NEW
+  notasTecnicas?: string | null;  //NEW
+  estado: SoporteEstado;
+  fueSolucionado: boolean;
 }
 
 export interface SupportReport extends SupportReportFormState {
@@ -14,6 +20,7 @@ export interface SupportReport extends SupportReportFormState {
   userId: number;
   usuario: { nombre: string };
   categoria: SoporteCategoria; // Use the imported type
+  fechaSolucion?: string | null;  //NEW
 }
 
 // Add this for consistency with other reports

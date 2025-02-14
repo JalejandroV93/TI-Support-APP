@@ -8,12 +8,19 @@ import SupportForm from "@/components/support/SupportForm";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useAuth } from "@/components/providers/AuthProvider";
-import { prisma } from "@/lib/prisma";
+import { ReporteArea, SoporteEstado, TipoUsuario } from "@prisma/client";
+
 
 const initialState: SupportReportFormState = {
   categoriaId: 0, // Initialize as 0 or a valid default ID
   descripcion: "",
   fecha: "",
+  reporteArea: ReporteArea.OTRO,
+  tipoUsuario: TipoUsuario.OTRO,
+  solucion: "",
+  notasTecnicas: "",
+  estado: SoporteEstado.ABIERTO,
+  fueSolucionado: false
 };
 
 const CreateSupportReportPage = () => {
@@ -30,11 +37,21 @@ const CreateSupportReportPage = () => {
     { id: number; nombre: string }[]
   >([]);
   useEffect(() => {
+        // --- Fetch Categories (using your API route) ---
     const fetchCategories = async () => {
-      const categories = await prisma.soporteCategoria.findMany({
-        select: { id: true, nombre: true },
-      });
-      setCategories(categories);
+      try {
+        const res = await fetch("/api/v1/reports/support-categories"); // New route!
+        if (res.ok) {
+          const categoriesData = await res.json();
+          setCategories(categoriesData); // Assuming the API returns an array of { id, nombre }
+        } else {
+          console.error("Failed to fetch categories:", await res.text());
+          // Consider showing an error to the user.
+        }
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+        // Consider showing an error to the user.
+      }
     };
 
     fetchCategories();
@@ -69,6 +86,8 @@ const CreateSupportReportPage = () => {
     if (!form.categoriaId) newErrors.categoriaId = "La categoría es requerida";
     if (!form.descripcion)
       newErrors.descripcion = "La descripción es requerida";
+    if (!form.reporteArea) newErrors.reporteArea = "El area de reporte es requerida";
+    if (!form.tipoUsuario) newErrors.tipoUsuario = "El tipo de usuario es requerido";
     return newErrors;
   };
 

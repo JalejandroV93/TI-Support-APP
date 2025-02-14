@@ -11,6 +11,8 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { SupportReportFormState } from "@/types/support";
+import { useEffect, useState } from "react";
+import { ReporteArea, TipoUsuario } from "@prisma/client";
 
 interface SupportFormProps {
   form: SupportReportFormState;
@@ -36,6 +38,17 @@ const SupportForm: React.FC<SupportFormProps> = ({
   isSubmitting,
   categories,
 }) => {
+
+    // --- State for Select Options ---
+    const [tipoUsuarioOptions, setTipoUsuarioOptions] = useState<string[]>([]);
+    const [reporteAreaOptions, setReporteAreaOptions] = useState<string[]>([]);
+
+    // --- Load enum values on component mount ---
+    useEffect(() => {
+      // Dynamically get enum values
+      setTipoUsuarioOptions(Object.values(TipoUsuario));
+      setReporteAreaOptions(Object.values(ReporteArea));
+    }, []);
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
@@ -59,6 +72,75 @@ const SupportForm: React.FC<SupportFormProps> = ({
           <p className="text-red-500 text-sm">{errors.categoriaId}</p>
         )}
       </div>
+
+      {/* Tipo de Usuario (Select) */}
+      <div className="col-span-full md:col-span-1">
+          <Label htmlFor="tipoUsuario">Tipo de Usuario *</Label>
+          <Select
+            onValueChange={(value) => handleSelectChange("tipoUsuario", value)}
+            value={form.tipoUsuario} // Asegúrate de que el valor coincida con los valores del enum
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecciona..." />
+            </SelectTrigger>
+            <SelectContent>
+              {tipoUsuarioOptions.map((option) => (
+                <SelectItem key={option} value={option}>
+                  {option}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Area de Reporte (Select) */}
+        <div className="col-span-full md:col-span-1">
+            <Label htmlFor="reporteArea">Area de Reporte *</Label>
+            <Select
+              onValueChange={(value) => handleSelectChange("reporteArea", value)}
+              value={form.reporteArea}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecciona..." />
+              </SelectTrigger>
+              <SelectContent>
+                {reporteAreaOptions.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+        </div>
+        
+        {/* Solución (Textarea) */}
+      <div className="space-y-2">
+        <Label htmlFor="solucion">Solución</Label>
+        <Textarea
+          id="solucion"
+          name="solucion"
+          value={form.solucion || ""}
+          onChange={handleChange}
+        />
+        {errors.solucion && (
+          <p className="text-red-500 text-sm">{errors.solucion}</p>
+        )}
+      </div>
+
+      {/* Notas Técnicas (Textarea) */}
+      <div className="space-y-2">
+        <Label htmlFor="notasTecnicas">Notas Técnicas</Label>
+        <Textarea
+          id="notasTecnicas"
+          name="notasTecnicas"
+          value={form.notasTecnicas || ""}
+          onChange={handleChange}
+        />
+        {errors.notasTecnicas && (
+          <p className="text-red-500 text-sm">{errors.notasTecnicas}</p>
+        )}
+      </div>
+
       <div>
         <Label htmlFor="descripcion">Descripción *</Label>
         <Textarea

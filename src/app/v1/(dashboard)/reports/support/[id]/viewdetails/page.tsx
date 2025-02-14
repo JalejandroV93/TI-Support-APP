@@ -24,7 +24,9 @@ import {
   Calendar,
   Printer,
   ArrowLeft,
-  Edit
+  Edit,
+  CheckCircle,
+    XCircle
 } from "lucide-react";
 import { ReportSkeleton } from "@/components/skeletons/SkeletonsUI";
 import { use } from "react";
@@ -119,7 +121,15 @@ const ReportDetail = ({ params: paramsPromise }: PageProps) => {
     return <div>No se encontró el reporte.</div>;
   }
 
-  return (
+    const getStatusLabel = (status: string) => {
+        return (
+          status.charAt(0).toUpperCase() +
+          status.slice(1).toLowerCase().replace("_", " ")
+        );
+      };
+
+
+    return (
     <div className="p-4 print:p-8 max-w-4xl mx-auto">
       <Card className="print:shadow-none">
         <CardHeader>
@@ -130,10 +140,9 @@ const ReportDetail = ({ params: paramsPromise }: PageProps) => {
               </Button>
             </Link>
             <Badge
-              variant={"secondary"}
               className="text-md px-4 py-2"
             >
-              Soporte
+              {getStatusLabel(report.estado)}
             </Badge>
           </div>
           <CardTitle className="flex flex-col gap-2 items-start print:items-center">
@@ -157,14 +166,62 @@ const ReportDetail = ({ params: paramsPromise }: PageProps) => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="mt-6">
-            <h2 className="text-lg font-semibold mb-2">Categoria</h2>
-            <p>{report.categoria.nombre || "Ninguna categoria seleccionada."}</p>
-          </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div>
+                <p className="font-medium">Categoría:</p>
+                <p>{report.categoria.nombre}</p>
+                </div>
+                <div>
+                <p className="font-medium">Tipo de Usuario:</p>
+                <p>{report.tipoUsuario}</p>
+                </div>
+                <div>
+                <p className="font-medium">Área de Reporte:</p>
+                <p>{report.reporteArea}</p>
+                </div>
+                <div>
+                    <p className="font-medium">Fecha Solución:</p>
+                    <p>{report.fechaSolucion ? format(new Date(report.fechaSolucion), "PPP", {
+                        locale: es,
+                        }) : "N/A"}</p>
+                </div>
+            </div>
+
           <div className="mt-6">
             <h2 className="text-lg font-semibold mb-2">Descripción</h2>
             <p>{report.descripcion || "Ninguna descripción."}</p>
           </div>
+          {/* Solución y Notas Técnicas */}
+          {report.solucion && (
+            <div className="mt-6">
+              <h2 className="text-lg font-semibold mb-2">Solución</h2>
+              <p>{report.solucion}</p>
+            </div>
+          )}
+          {report.notasTecnicas && (
+            <div className="mt-6">
+              <h2 className="text-lg font-semibold mb-2">Notas Técnicas</h2>
+              <p>{report.notasTecnicas}</p>
+            </div>
+          )}
+
+        <div className="mt-4 flex items-center gap-2">
+            {report.fueSolucionado ? (
+            <>
+                <CheckCircle className="w-5 h-5 text-green-500" />
+                <span className="text-green-600 font-medium">
+                Solucionado
+                </span>
+            </>
+            ) : (
+            <>
+                <XCircle className="w-5 h-5 text-red-500" />
+                <span className="text-red-600 font-medium">
+                No Solucionado
+                </span>
+            </>
+            )}
+        </div>
         </CardContent>
         <CardFooter className="flex flex-wrap justify-between gap-4 print:hidden">
           <div className="flex gap-2">
