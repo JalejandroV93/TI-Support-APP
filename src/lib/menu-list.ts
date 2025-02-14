@@ -8,6 +8,7 @@ import {
   Network,
   Tablet,
   HeartHandshake,
+  Settings,
 } from "lucide-react";
 import { UserPayload } from "@/types/user"; // Importa el tipo UserPayload
 
@@ -87,9 +88,23 @@ export function getMenuList(pathname: string, user: UserPayload | null): Group[]
     roles: ['ADMIN'], // Solo ADMIN
   };
 
+  const settingsMenu: Menu = {
+    href: "#",  // Use '#' as a placeholder since it's a parent menu
+    label: "Configuración",
+    icon: Settings,
+    roles: ['ADMIN'],
+    submenus: [  // Add the submenus here
+        {
+            href: "/v1/settings/categories",
+            label: "Categorías de Soporte",
+        },
+        // Add other setting submenus here
+    ],
+};
+
   // Agrega el menú de administrador si el usuario es ADMIN
   if (user?.rol === 'ADMIN') {
-    baseMenu.push({ groupLabel: "Administración", menus: [adminMenu] });
+    baseMenu.push({ groupLabel: "Administración", menus: [adminMenu, settingsMenu] });
   }
   
   
