@@ -169,7 +169,7 @@ const NetworkForm: React.FC<NetworkFormProps> = ({
             {/* Solución (Textarea) - Conditional Rendering */}
           {showSolution && (
           <div className="space-y-2">
-            <Label htmlFor="solucion">Solución</Label>
+            <Label htmlFor="solucion">¿Como se soluciono el incidente?</Label>
             <Textarea
               id="solucion"
               name="solucion"

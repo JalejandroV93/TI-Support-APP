@@ -72,7 +72,7 @@ export function getMenuList(pathname: string, user: UserPayload | null): Group[]
         },
         {
           href: "/v1/reports/support",   
-          label: "Soporte en Sitio",    
+          label: "Soporte",    
           icon: HeartHandshake,    
           roles: ['ADMIN', 'COLABORADOR'],   
           },

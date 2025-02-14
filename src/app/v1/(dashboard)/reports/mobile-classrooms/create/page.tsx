@@ -138,7 +138,7 @@ const CreateMobileClassroomsReport = () => {
       handleSelectChange={handleSelectChange}
       handleSubmit={handleSubmit}
       isSubmitting={isSubmitting}
-      submitButtonText="Crear Reporte"
+      submitButtonText="Guardar Reporte"
       onCancel={handleCancel} // Add the onCancel prop
       />
     </div>
