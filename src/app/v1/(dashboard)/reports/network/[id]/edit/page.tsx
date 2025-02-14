@@ -23,12 +23,11 @@ const loadingState: NetworkReportFormState = {
     tipo: "OTRO",
     descripcion: "",
     dispositivo: "",
-    direccionIP: "",
     estado: "ABIERTO",
     prioridad: "BAJA",
     tecnico: "",
-    notasTecnicas: "",
     solucion: "",
+    fueSolucionado: false,
 };
 
 const EditNetworkReport = ({ params: paramsPromise }: PageProps) => {
@@ -61,12 +60,11 @@ const EditNetworkReport = ({ params: paramsPromise }: PageProps) => {
             tipo: data.tipo,
             descripcion: data.descripcion,
             dispositivo: data.dispositivo,
-            direccionIP: data.direccionIP,
             estado: data.estado,
             prioridad: data.prioridad,
             tecnico: data.tecnico,
-            notasTecnicas: data.notasTecnicas,
             solucion: data.solucion,
+            fueSolucionado: data.fueSolucionado,
           };
 
           setForm(reportData);
@@ -107,7 +105,7 @@ const EditNetworkReport = ({ params: paramsPromise }: PageProps) => {
     }
   };
 
-  const handleSelectChange = (name: keyof NetworkReportFormState, value: string) => {
+  const handleSelectChange = (name: keyof NetworkReportFormState, value: string | number | boolean) => {
     setForm((prevForm) => ({ ...prevForm, [name]: value }));
     setErrors((prevErrors) => ({ ...prevErrors, [name]: undefined }));
   };

@@ -5,7 +5,7 @@ import { config } from './config';  // Import config
 
 // Function to create the token
 export const createToken = async (user: UserPayload): Promise<string> => {
-  console.log("createToken - Payload received:", user); // IMPORTANT LOGGING
+  //console.log("createToken - Payload received:", user); // IMPORTANT LOGGING
   if (!user) {
     console.error("createToken - Payload is NULL!"); // Add a log for explicit null check
     throw new Error("User payload cannot be null or undefined.");

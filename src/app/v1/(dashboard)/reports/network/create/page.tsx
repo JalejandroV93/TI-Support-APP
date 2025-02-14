@@ -14,12 +14,11 @@ const initialState: NetworkReportFormState = {
     tipo: "OTRO",
     descripcion: "",
     dispositivo: "",
-    direccionIP: "",
     estado: "ABIERTO",
     prioridad: "BAJA",
     tecnico: "",
-    notasTecnicas: "",
     solucion: "",
+    fueSolucionado: false,
 };
 
 const CreateNetworkReport = () => {
@@ -56,7 +55,7 @@ const CreateNetworkReport = () => {
         }
     };
 
-    const handleSelectChange = (name: keyof NetworkReportFormState, value: string) => {
+    const handleSelectChange = (name: keyof NetworkReportFormState, value: string | number | boolean) => {
         setForm((prevForm) => ({ ...prevForm, [name]: value }));
         setErrors((prevErrors) => ({ ...prevErrors, [name]: undefined }));
     };

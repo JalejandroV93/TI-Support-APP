@@ -158,7 +158,6 @@ const NetworkReportDetail = ({ params: paramsPromise }: PageProps) => {
                 },
                 { label: "Ubicación", value: report.ubicacion || "N/A" },
                 { label: "Dispositivo", value: report.dispositivo || "N/A" },
-                { label: "Dirección IP", value: report.direccionIP || "N/A" },
               ]}
             />
             <InfoSection
@@ -205,10 +204,6 @@ const NetworkReportDetail = ({ params: paramsPromise }: PageProps) => {
             <TextSection
               title="Descripción"
               content={report.descripcion ?? ""}
-            />
-            <TextSection
-              title="Notas Técnicas"
-              content={report.notasTecnicas ?? ""}
             />
             <TextSection title="Solución" content={report.solucion ?? ""} />
           </div>
