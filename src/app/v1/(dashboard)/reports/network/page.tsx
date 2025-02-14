@@ -10,9 +10,17 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { NetworkReportSkeleton } from "@/components/skeletons/SkeletonsUI";
 import { RedEstado } from "@prisma/client";
 import { toast } from "sonner";
-import {  User } from "lucide-react";
+import { User } from "lucide-react";
 import ReportCard, { ReportCardDetail } from "@/components/ReportCard";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { debounce } from "@/lib/utils";
+
 
 const getStatusVariant = (status: RedEstado) => {
   switch (status) {
@@ -78,7 +86,7 @@ export default function NetworkReportsPage() {
 
   const loadMore = useCallback(() => {
     if (isLoadingMore || isReachingEnd) return;
-    debouncedSetSize(size + 1);
+    debouncedSetSize(size + 1); // Use the debounced function.
   }, [isLoadingMore, isReachingEnd, debouncedSetSize, size]);
 
   // Intersection Observer para cargar más
@@ -151,14 +159,15 @@ export default function NetworkReportsPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {reportsList.map((report, index) => {
 
+
             const details: ReportCardDetail[] = [
               {
                 label: "Técnico",
                 value: (
-                  <>
-                    <User className="w-4 h-4 inline-block mr-1" />
-                    {report.tecnico || "N/A"}
-                  </>
+                    <>
+                        <User className="w-4 h-4 inline-block mr-1" />
+                        {report.tecnico || "N/A"}
+                    </>
                 ),
               },
               {
@@ -187,19 +196,25 @@ export default function NetworkReportsPage() {
               >
                 {/* Custom content for the status change */}
                 <div className="mt-2">
-                  <select
-                  value={report.estado}
-                  onChange={(e) =>
-                    handleStatusChange(report.id, e.target.value as RedEstado)
-                  }
-                  className="text-xs border rounded px-1 py-0.5" //Added style.
-                >
-                  {Object.values(RedEstado).map((estado) => (
-                    <option key={estado} value={estado}>
-                      {getStatusLabel(estado)}
-                    </option>
-                  ))}
-                </select>
+
+                  <Select
+                    value={report.estado}
+                    onValueChange={(newValue) =>
+                      handleStatusChange(report.id, newValue as RedEstado)
+                    }
+
+                  >
+                    <SelectTrigger className="w-auto h-auto p-0 border-none"> {/* Remove padding, height and border*/}
+                      <SelectValue >{getStatusLabel(report.estado)}</SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.values(RedEstado).map((estado) => (
+                        <SelectItem key={estado} value={estado}>
+                          {getStatusLabel(estado)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
               </ReportCard>

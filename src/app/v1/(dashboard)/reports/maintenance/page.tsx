@@ -10,7 +10,7 @@ import useSWRInfinite from "swr/infinite";
 import { useCallback, useRef, useMemo } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ReportCard, { ReportCardDetail } from "@/components/ReportCard"; // Import ReportCard
-import { debounce } from "@/lib/utils";
+import { debounce } from "@/lib/utils";  //Corrected
 
 
 const PAGE_SIZE = 10;
@@ -22,6 +22,7 @@ const fetcher = async (url: string) => {
     }
     return res.json();
 };
+
 
 
 export default function MaintenanceReportsPage() {
@@ -113,12 +114,8 @@ export default function MaintenanceReportsPage() {
                                 key={report.id}
                                 title={report.numeroReporte}
                                 date={report.fechaRegistro}
-                                subtitle={`Equipo: ${report.equipo}`}
                                 details={details}
-                                badgeText={
-                                    report.tipoMantenimiento.charAt(0).toUpperCase() +
-                                    report.tipoMantenimiento.slice(1).toLowerCase()
-                                }
+                                badgeText={report.tipoMantenimiento}
                                 badgeVariant={
                                     report.tipoMantenimiento === "CORRECTIVO"
                                         ? "destructive"

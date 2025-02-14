@@ -9,9 +9,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import {  Tablet } from "lucide-react";
 import { MobileClassroomsReport } from "@/types/mobile-classrooms";
 import { MobileClassroomsReportSkeleton } from "@/components/skeletons/SkeletonsUI";
-import ReportCard, { ReportCardDetail } from "@/components/ReportCard";  // Import Report Card
-import { debounce } from "@/lib/utils";
-
+import ReportCard, { ReportCardDetail } from "@/components/ReportCard"; //NEW
+import { debounce } from "@/lib/utils"; //NEW
 
 const PAGE_SIZE = 10;
 
@@ -22,7 +21,6 @@ const fetcher = async (url: string) => {
   }
   return res.json();
 };
-
 
 export default function MobileClassroomsReportsPage() {
   const { data, error, size, setSize, isLoading } = useSWRInfinite(
@@ -92,13 +90,13 @@ export default function MobileClassroomsReportsPage() {
       <ScrollArea className="h-[calc(100vh-280px)] w-full">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {reports.map((report, index) => {
-            const details: ReportCardDetail[] = [
+              const details: ReportCardDetail[] = [
                 {
                     label: "Tablet",
                     value: (
                         <>
                         <Tablet className="w-4 h-4 inline-block mr-1" />
-                         {report.tabletId || "N/A"}
+                        {report.tabletId || "N/A"}
                         </>
                     )
                 },
@@ -107,10 +105,10 @@ export default function MobileClassroomsReportsPage() {
                     value: report.docente || "N/A"
                 },
                 {
-                    label: "Salon",
+                    label: "Salón",
                     value: report.salon || "N/A"
                 }
-            ]
+            ];
             return (
               <ReportCard
                 key={report.id}
@@ -122,8 +120,7 @@ export default function MobileClassroomsReportsPage() {
                     .map((word) =>
                       word === "DANIO"
                         ? "Daño"
-                        : word.charAt(0).toUpperCase() +
-                          word.slice(1).toLowerCase()
+                        : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
                     )
                     .join(" ")
                 }
