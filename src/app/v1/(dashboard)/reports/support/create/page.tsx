@@ -2,16 +2,16 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useSupportReportStore } from "@/store/supportReportStore"; // Import Zustand store
-import { SupportReportFormState } from "@/types/support"; //IMPORT
-import SupportForm from "@/components/support/SupportForm"; //IMPORT
+import { useSupportReportStore } from "@/store/supportReportStore";
+import { SupportReportFormState } from "@/types/support";
+import SupportForm from "@/components/support/SupportForm";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useAuth } from "@/components/providers/AuthProvider";
-import { prisma } from "@/lib/prisma"; 
+import { prisma } from "@/lib/prisma";
 
 const initialState: SupportReportFormState = {
-  categoriaId: "", // Initialize as empty string (or a default ID if you have one)
+  categoriaId: 0, // Initialize as 0 or a valid default ID
   descripcion: "",
   fecha: "",
 };
@@ -24,12 +24,7 @@ const CreateSupportReportPage = () => {
   >({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
-
-  const { createReport, fetchTechnicians } = useSupportReportStore();
-
-  useEffect(() => {
-    fetchTechnicians();
-  }, [fetchTechnicians]);
+  const { createReport } = useSupportReportStore();
 
   const [categories, setCategories] = useState<
     { id: number; nombre: string }[]
@@ -124,10 +119,10 @@ const CreateSupportReportPage = () => {
         form={form}
         errors={errors}
         handleChange={handleChange}
-        handleSubmit={handleSubmit}
         handleSelectChange={handleSelectChange}
+        handleSubmit={handleSubmit}
         isSubmitting={isSubmitting}
-        categories={categories} 
+        categories={categories} // Pass categories here
       />
     </div>
   );

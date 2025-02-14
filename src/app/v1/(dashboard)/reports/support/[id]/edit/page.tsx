@@ -21,7 +21,7 @@ interface PageProps {
 const loadingState: SupportReportFormState = {
     categoriaId: 0,
     descripcion: "",
-    fecha: "",
+    //fecha: "", Remove fecha
   };
 
 const EditSupportReportPage = ({ params: paramsPromise }: PageProps) => {
@@ -33,16 +33,12 @@ const EditSupportReportPage = ({ params: paramsPromise }: PageProps) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [loadingReport, setLoadingReport] = useState(true);
     const router = useRouter();
-    const { updateReport, fetchTechnicians, technicians } = useSupportReportStore();  //Add fetchTechnicians and technicians.
+    const { updateReport } = useSupportReportStore();
 
     const [categories, setCategories] = useState<{ id: number; nombre: string }[]>([]);
 
     const params = use(paramsPromise);
     const reportId = params.id;
-
-    useEffect(() => {
-        fetchTechnicians();
-    }, [fetchTechnicians]);
 
     useEffect(() => {
         const fetchCategories = async () => {
@@ -51,10 +47,10 @@ const EditSupportReportPage = ({ params: paramsPromise }: PageProps) => {
           });
           setCategories(categories);
         };
-    
+
         fetchCategories();
       }, []);
-  
+
     useEffect(() => {
       const fetchReport = async () => {
         setLoadingReport(true);
@@ -65,11 +61,11 @@ const EditSupportReportPage = ({ params: paramsPromise }: PageProps) => {
             const reportData: SupportReportFormState = {
                 categoriaId: data.categoriaId,
                 descripcion: data.descripcion,
-                fecha: data.fecha
-                ? new Date(data.fecha).toISOString()
-                : "",
+                //fecha: data.fecha  //Remove fecha
+                //? new Date(data.fecha).toISOString()
+                //: "",
             };
-  
+
             setForm(reportData);
           } else {
             console.error("Error al obtener el reporte");
@@ -82,12 +78,12 @@ const EditSupportReportPage = ({ params: paramsPromise }: PageProps) => {
           setLoadingReport(false);
         }
       };
-  
+
       if (reportId) {
         fetchReport();
       }
     }, [reportId]);
-  
+
     const handleChange = (
       e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
     ) => {
@@ -98,26 +94,20 @@ const EditSupportReportPage = ({ params: paramsPromise }: PageProps) => {
       }));
       setErrors((prevErrors) => ({ ...prevErrors, [name]: undefined }));
     };
-  
-    const handleDateChange = (name: string, date: Date | undefined) => { // Corrected type
-      if (date) {
-        setForm({ ...form, [name]: date.toISOString() });
-        setErrors({ ...errors, [name]: undefined });
-      } else {
-        setForm({ ...form, [name]: "" }); // Empty string for undefined date
-      }
-    };
-  
+
+    // Remove handleDateChange
+
     const handleSelectChange = (
       name: keyof SupportReportFormState,
       value: string | number
     ) => {
       // Ensure categoriaId is always a number
-      const processedValue = name === "categoriaId" ? parseInt(value as string, 10) : value;
+      const processedValue =
+        name === "categoriaId" ? parseInt(value as string, 10) : value;
       setForm((prevForm) => ({ ...prevForm, [name]: processedValue }));
       setErrors((prevErrors) => ({ ...prevErrors, [name]: undefined }));
     };
-  
+
     const validate = (): Partial<
       Record<keyof SupportReportFormState, string>
     > => {
@@ -127,21 +117,21 @@ const EditSupportReportPage = ({ params: paramsPromise }: PageProps) => {
       if (!form.categoriaId)
         newErrors.categoriaId = "La categoría es requerida";
       if (!form.descripcion) newErrors.descripcion = "La descripción es requerida";
-  
+
       return newErrors;
     };
-  
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       setIsSubmitting(true);
       const validationErrors = validate();
-  
+
       if (Object.keys(validationErrors).length > 0) {
         setErrors(validationErrors);
         setIsSubmitting(false);
         return;
       }
-  
+
       if (!user) {
         toast.error(
           "No se pudo obtener el usuario. Recarga la página e intenta de nuevo."
@@ -149,7 +139,7 @@ const EditSupportReportPage = ({ params: paramsPromise }: PageProps) => {
         setIsSubmitting(false);
         return;
       }
-  
+
       const success = await updateReport(reportId, form);
       if (success) {
         router.push("/v1/reports/support");
@@ -160,13 +150,13 @@ const EditSupportReportPage = ({ params: paramsPromise }: PageProps) => {
         );      }
       setIsSubmitting(false);
     };
-  
-    
-  
+
+
+
     if (loadingReport) {
       return <ReportSkeleton />;
     }
-  
+
     return (
       <div className="container mx-auto p-4 space-y-6">
         <div className="flex items-center justify-between">
@@ -185,16 +175,15 @@ const EditSupportReportPage = ({ params: paramsPromise }: PageProps) => {
           </Button>
         </Link>
         </div>
-  
+
         {useSupportReportStore.getState().error &&
           toast.error(useSupportReportStore.getState().error)}
-  
+
         <SupportForm
           form={form}
           errors={errors}
-          technicians={technicians}
           handleChange={handleChange}
-          handleDateChange={handleDateChange}
+          //handleDateChange={handleDateChange} Remove handleDateChange
           handleSelectChange={handleSelectChange}
           handleSubmit={handleSubmit}
           isSubmitting={isSubmitting}

@@ -5,7 +5,7 @@ import { getCurrentUser } from '@/lib/auth';
 import { z } from 'zod';
 
 const supportReportInputSchema = z.object({
-  categoriaId: z.number().int().positive(), // Ensure positive
+  categoriaId: z.number().int().positive(),
   descripcion: z.string().min(1, 'La descripción es requerida'),
   fecha: z.string().datetime().optional()  //Make optional to use default value.
 });
