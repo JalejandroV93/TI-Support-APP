@@ -1,4 +1,4 @@
-// src/components/support/SupportForm.tsx
+
 "use client";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -13,8 +13,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { SupportReportFormState } from "@/types/support";
 import { useEffect, useState } from "react";
 import { TipoUsuario } from "@prisma/client";
-import { Input } from "@/components/ui/input"; // Import Input
+import { Input } from "@/components/ui/input"; 
 import { Switch } from "@/components/ui/switch";
+import { useReportAreaStore } from "@/store/reportAreaStore"; 
+ import { AreasLoading } from "@/components/skeletons/SkeletonsUI"; 
+
 
 interface SupportFormProps {
   form: SupportReportFormState;
@@ -24,12 +27,12 @@ interface SupportFormProps {
   ) => void;
   handleSelectChange: (
     name: keyof SupportReportFormState,
-    value: string | number | boolean
+    value: string | number | boolean 
   ) => void;
   handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
   isSubmitting: boolean;
-  categories: { id: number; nombre: string }[]; // Expect categories
-  areas: { id: number; nombre: string }[]; // Add areas prop
+  categories: { id: number; nombre: string }[]; 
+  areas: { id: number; nombre: string }[]; 
 }
 
 const SupportForm: React.FC<SupportFormProps> = ({
@@ -40,33 +43,25 @@ const SupportForm: React.FC<SupportFormProps> = ({
   handleSubmit,
   isSubmitting,
   categories,
+  areas,  
 }) => {
   const [tipoUsuarioOptions, setTipoUsuarioOptions] = useState<string[]>([]);
-  const [showSolution, setShowSolution] = useState(form.fueSolucionado); // Control solution field visibility
-  const [areas, setAreas] = useState<{ id: number; nombre: string }[]>([]);
+  const [showSolution, setShowSolution] = useState(form.fueSolucionado); 
+  const { loading: areasLoading } = useReportAreaStore();  
+
 
   useEffect(() => {
     setTipoUsuarioOptions(Object.values(TipoUsuario));
-    setShowSolution(form.fueSolucionado); //If in edit mode, get data of solved
+    setShowSolution(form.fueSolucionado); 
   }, [form.fueSolucionado]);
-  
-  useEffect(() => {
-    const fetchAreas = async () => {
-      try {
-        const res = await fetch("/api/v1/settings/areas");
-        if (res.ok) {
-          const areasData = await res.json();
-          setAreas(areasData); // Assuming the API returns an array of { id, nombre }
-        } else {
-          console.error("Failed to fetch areas:", await res.text());
-        }
-      } catch (error) {
-        console.error("Error fetching areas:", error);
-      }
-    };
 
-    fetchAreas();
-  }, []);
+    
+    if (areasLoading) {
+        return (
+         <AreasLoading />
+        );
+     }
+
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -76,8 +71,8 @@ const SupportForm: React.FC<SupportFormProps> = ({
         <Select
           onValueChange={(value) =>
             handleSelectChange("categoriaId", parseInt(value, 10))
-          } // Parse to number here!
-          value={form.categoriaId.toString()} // Convert to string for the Select component
+          } 
+          value={form.categoriaId.toString()} 
         >
           <SelectTrigger>
             <SelectValue placeholder="Selecciona una categoría" />
@@ -101,7 +96,7 @@ const SupportForm: React.FC<SupportFormProps> = ({
           <Label htmlFor="tipoUsuario">Tipo de Usuario *</Label>
           <Select
             onValueChange={(value) => handleSelectChange("tipoUsuario", value)}
-            value={form.tipoUsuario} // Asegúrate de que el valor coincida con los valores del enum
+            value={form.tipoUsuario} 
           >
             <SelectTrigger>
               <SelectValue placeholder="Selecciona..." />
@@ -142,8 +137,8 @@ const SupportForm: React.FC<SupportFormProps> = ({
           <Select
             onValueChange={(value) =>
               handleSelectChange("reporteAreaId", parseInt(value, 10))
-            } // Parse to number
-            value={form.reporteAreaId.toString()} // Convert to string for Select
+            } 
+            value={form.reporteAreaId.toString()} 
           >
             <SelectTrigger>
               <SelectValue placeholder="Selecciona..." />
@@ -151,7 +146,7 @@ const SupportForm: React.FC<SupportFormProps> = ({
             <SelectContent>
               {areas.map(
                 (
-                  area // Use areas prop
+                  area 
                 ) => (
                   <SelectItem key={area.id} value={area.id.toString()}>
                     {area.nombre}
@@ -206,6 +201,7 @@ const SupportForm: React.FC<SupportFormProps> = ({
             handleSelectChange("fueSolucionado", checked);
             setShowSolution(checked);
           }}
+          id="fueSolucionado"
         />
       </div>
 

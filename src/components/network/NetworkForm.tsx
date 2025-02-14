@@ -29,7 +29,7 @@ interface NetworkFormProps {
   handleDateChange: (name: string, date: Date | undefined) => void; // Corrected
   handleSelectChange: (
     name: keyof NetworkReportFormState,
-    value: string
+    value: string | number | boolean // CHANGED THIS
   ) => void;
   handleSubmit: (e: React.FormEvent<HTMLFormElement>) => Promise<void>;
   isSubmitting: boolean;
@@ -159,10 +159,11 @@ const NetworkForm: React.FC<NetworkFormProps> = ({
             <Label htmlFor="fueSolucionado">¿Fue Solucionado?</Label>
             <Switch
               checked={form.fueSolucionado}
-              onCheckedChange={(checked) => {
-                handleSelectChange("fueSolucionado", checked.toString());
+onCheckedChange={(checked) => {
+                handleSelectChange("fueSolucionado", checked); //Now it accepts boolean
                 setShowSolution(checked);  // Control visibility
               }}
+              id="fueSolucionado"
             />
             </div>
 

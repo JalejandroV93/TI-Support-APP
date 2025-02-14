@@ -13,6 +13,8 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ReportSkeleton } from "@/components/skeletons/SkeletonsUI"; //IMPORT
 import {  SoporteEstado, TipoUsuario } from "@prisma/client";  //IMPORT
+import { useReportAreaStore } from "@/store/reportAreaStore"; //NEW
+import { useCategoryStore } from "@/store/categoryStore";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -43,49 +45,16 @@ const EditSupportReportPage = ({ params: paramsPromise }: PageProps) => {
     const router = useRouter();
     const { updateReport } = useSupportReportStore();
 
-    const [categories, setCategories] = useState<{ id: number; nombre: string }[]>([]);
-     //NEW: Areas
-    const [areas, setAreas] = useState<{ id: number; nombre: string }[]>([]);
+    const { areas, fetchAreas } = useReportAreaStore();
+    const { categories, fetchCategories } = useCategoryStore();
 
     const params = use(paramsPromise);
     const reportId = params.id;
 
     useEffect(() => {
-        // --- Fetch Categories (using your API route) ---
-      const fetchCategories = async () => {
-        try {
-          const res = await fetch("/api/v1/reports/support-categories"); // New route!
-          if (res.ok) {
-            const categoriesData = await res.json();
-            setCategories(categoriesData); // Assuming the API returns an array of { id, nombre }
-          } else {
-            console.error("Failed to fetch categories:", await res.text());
-            // Consider showing an error to the user.
-          }
-        } catch (error) {
-          console.error("Error fetching categories:", error);
-          // Consider showing an error to the user.
-        }
-      };
-
-      //NEW
-      const fetchAreas = async () => {
-        try {
-          const res = await fetch("/api/v1/settings/areas");
-          if (res.ok) {
-            const areasData = await res.json();
-            setAreas(areasData);
-          } else {
-            console.error("Failed to fetch areas:", await res.text());
-          }
-        } catch (error) {
-          console.error("Error fetching areas:", error);
-        }
-      };
-  
+      fetchAreas();
       fetchCategories();
-      fetchAreas(); //NEW
-    }, []);
+    }, [fetchAreas, fetchCategories]); // Fetch on mount
 
     useEffect(() => {
       const fetchReport = async () => {

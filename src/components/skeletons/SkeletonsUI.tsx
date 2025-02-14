@@ -273,35 +273,87 @@ export function MobileClassroomsReportSkeleton() {
 
 export function SupportReportSkeleton() {
   return (
-      <div className="p-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mt-4">
-              {[...Array(8)].map((_, index) => (
-                  <Card key={index} className="animate-pulse">
-                      <CardHeader>
-                          <CardTitle className="flex items-center gap-2">
-                              <Clipboard className="w-5 h-5 text-muted-foreground" />
-                              <Skeleton className="h-5 w-3/4" />
-                          </CardTitle>
-                          <CardDescription className="flex items-center gap-2">
-                              <Calendar className="w-4 h-4 text-muted-foreground" />
-                              <Skeleton className="h-4 w-2/3" />
-                          </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                          <div className="flex flex-col gap-2">
-                              <div className="flex items-center gap-2">
-                                  <User className="w-4 h-4 text-muted-foreground" />
-                                  <Skeleton className="h-6 w-1/3" />
-                              </div>
-                          </div>
-                      </CardContent>
-                      <CardFooter className="flex justify-between">
-                          <Skeleton className="h-9 w-20" />
-                          <Skeleton className="h-9 w-20" />
-                      </CardFooter>
-                  </Card>
-              ))}
-          </div>
+    <div className="p-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mt-4">
+        {[...Array(8)].map((_, index) => (
+          <Card key={index} className="animate-pulse">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clipboard className="w-5 h-5 text-muted-foreground" />
+                <Skeleton className="h-5 w-3/4" />
+              </CardTitle>
+              <CardDescription className="flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-muted-foreground" />
+                <Skeleton className="h-4 w-2/3" />
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <User className="w-4 h-4 text-muted-foreground" />
+                  <Skeleton className="h-6 w-1/3" />
+                </div>
+              </div>
+            </CardContent>
+            <CardFooter className="flex justify-between">
+              <Skeleton className="h-9 w-20" />
+              <Skeleton className="h-9 w-20" />
+            </CardFooter>
+          </Card>
+        ))}
       </div>
+    </div>
+  );
+}
+
+export function AreasLoading() {
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            <Skeleton className="h-6 w-40" />
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Skeleton className="h-8 w-full" />
+          <Skeleton className="h-8 w-full" />
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            <Skeleton className="h-6 w-40" />
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Skeleton className="h-8 w-full col-span-full" />
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            <Skeleton className="h-6 w-40" />
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Skeleton className="h-8 w-full" />
+          <Skeleton className="h-8 w-full" />
+          <Skeleton className="h-8 w-full" />
+          <Skeleton className="h-8 w-full" />
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            <Skeleton className="h-6 w-40" />
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Skeleton className="h-24 w-full" />
+        </CardContent>
+      </Card>
+      <Skeleton className="h-10 w-40" />
+    </div>
   );
 }
