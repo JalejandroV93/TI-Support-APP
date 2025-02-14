@@ -1,3 +1,4 @@
+// src/app/v1/(dashboard)/reports/network/page.tsx
 "use client";
 
 import Link from "next/link";
@@ -7,27 +8,11 @@ import useSWRInfinite from "swr/infinite";
 import { useCallback, useRef, useState, useEffect, useMemo } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { NetworkReportSkeleton } from "@/components/skeletons/SkeletonsUI";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
-import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { RedEstado } from "@prisma/client";
 import { toast } from "sonner";
-import { Clipboard, User, Calendar, Eye } from "lucide-react";
+import {  User } from "lucide-react";
+import ReportCard, { ReportCardDetail } from "@/components/ReportCard";
+import { debounce } from "@/lib/utils";
 
 const getStatusVariant = (status: RedEstado) => {
   switch (status) {
@@ -50,12 +35,6 @@ const getStatusLabel = (status: RedEstado) => {
   );
 };
 
-const badgeClasses: Record<string, string> = {
-  destructive: "bg-red-500 text-white",
-  warning: "bg-yellow-500 text-white",
-  success: "bg-green-500 text-white",
-  secondary: "bg-gray-500 text-white",
-};
 
 const PAGE_SIZE = 10;
 
@@ -67,21 +46,7 @@ const fetcher = async (url: string) => {
   return res.json();
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function debounce<T extends (...args: any[]) => any>(
-  func: T,
-  wait: number
-): (...args: Parameters<T>) => void {
-  let timeout: ReturnType<typeof setTimeout> | null;
-  return function executedFunction(...args: Parameters<T>) {
-    const later = () => {
-      timeout = null;
-      func(...args);
-    };
-    if (timeout) clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
-  };
-}
+
 
 export default function NetworkReportsPage() {
   const { data, error, size, setSize, isLoading } = useSWRInfinite(
@@ -147,10 +112,13 @@ export default function NetworkReportsPage() {
       );
 
       if (response.ok) {
-        const updatedReports = reports.map((report) =>
-          report.id === reportId ? { ...report, estado: newStatus } : report
+        // Optimistic Update: Update local state immediately
+        setReports(
+            reports.map((report) =>
+            report.id === reportId ? { ...report, estado: newStatus } : report
+          )
         );
-        setReports(updatedReports);
+
         toast.success(`Reporte ${reportId} actualizado a ${newStatus}`);
       } else {
         const errorData = await response.json();
@@ -181,89 +149,62 @@ export default function NetworkReportsPage() {
 
       <ScrollArea className="h-[calc(100vh-280px)] w-full">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {reportsList.map((report, index) => (
-            <Card
-              key={report.id}
-              ref={index === reports.length - 1 ? lastReportRef : undefined}
-              className="relative transition-transform ease-in-out hover:scale-[1.02] hover:shadow-lg"
-            >
-              {/* Badge de estado en la esquina superior derecha */}
+          {reportsList.map((report, index) => {
 
-              <CardHeader>
-                <CardTitle className="flex flex-row gap-1 justify-between align-middle">
-                  <div className="flex flex-row gap-1">
-                    <Clipboard className="w-5 h-5" />
-                    <span>{report.numeroReporte}</span>
-                  </div>
-                  <div className="">
-                    <Badge
-                      className={` text-[10px] px-2 py-1 rounded ${
-                        badgeClasses[getStatusVariant(report.estado)]
-                      }`}
-                    >
-                      {getStatusLabel(report.estado)}
-                    </Badge>
-                  </div>
-                </CardTitle>
-                <CardDescription className="flex items-center gap-2 text-sm">
-                  <Calendar className="w-4 h-4" />
-                  <span>
-                    {format(new Date(report.fechaRegistro), "PPP", {
-                      locale: es,
-                    })}
-                  </span>
-                </CardDescription>
-              </CardHeader>
+            const details: ReportCardDetail[] = [
+              {
+                label: "Técnico",
+                value: (
+                  <>
+                    <User className="w-4 h-4 inline-block mr-1" />
+                    {report.tecnico || "N/A"}
+                  </>
+                ),
+              },
+              {
+                label: "Tipo de Reporte",
+                value:
+                  report.tipo === "DANIO"
+                    ? "Daño"
+                    : report.tipo.charAt(0).toUpperCase() +
+                      report.tipo.slice(1).toLowerCase().replace("_", " "),
+              },
 
-              <CardContent className="space-y-1">
-                <p className="flex items-center gap-2 text-sm">
-                  <User className="w-4 h-4" />
-                  <span>{report.tecnico || "N/A"}</span>
-                </p>
-                <p className="text-sm">
-                  Tipo de Reporte: <span>
-                    {report.tipo === "DANIO"
-                      ? "Daño"
-                      : report.tipo.charAt(0).toUpperCase() +
-                        report.tipo.slice(1).toLowerCase().replace("_", " ")}
-                  </span>
-                </p>
-                {/* Actualización rápida del estado */}
-                <div className="flex items-center justify-between gap-2 text-sm">
-                  <p>Cambiar Estado: </p>
-                  <Select
-                    value={report.estado}
-                    onValueChange={(newValue) =>
-                      handleStatusChange(report.id, newValue as RedEstado)
-                    }
-                  >
-                    <SelectTrigger className="w-auto">
-                      <SelectValue>{getStatusLabel(report.estado)}</SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.values(RedEstado).map((estado) => (
-                        <SelectItem key={estado} value={estado}>
-                          {getStatusLabel(estado)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+            ];
+
+            return (
+              <ReportCard
+                key={report.id}
+                title={report.numeroReporte}
+                date={report.fechaRegistro}
+                badgeText={getStatusLabel(report.estado)}
+                badgeVariant={getStatusVariant(report.estado)}
+                details={details}
+                viewDetailHref={`/v1/reports/network/${report.id}/viewdetail`}
+                ref={
+                  index === reports.length - 1 ? lastReportRef : undefined
+                }
+              >
+                {/* Custom content for the status change */}
+                <div className="mt-2">
+                  <select
+                  value={report.estado}
+                  onChange={(e) =>
+                    handleStatusChange(report.id, e.target.value as RedEstado)
+                  }
+                  className="text-xs border rounded px-1 py-0.5" //Added style.
+                >
+                  {Object.values(RedEstado).map((estado) => (
+                    <option key={estado} value={estado}>
+                      {getStatusLabel(estado)}
+                    </option>
+                  ))}
+                </select>
                 </div>
-              </CardContent>
 
-              <CardFooter className="flex justify-end">
-                <Link className="w-full" href={`/v1/reports/network/${report.id}/viewdetail`}>
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    className="bg-red-700 text-white hover:bg-zinc-900 min-w-full"
-                  >
-                    <Eye className="w-4 h-4 mr-1" /> Ver
-                  </Button>
-                </Link>
-              </CardFooter>
-            </Card>
-          ))}
+              </ReportCard>
+            );
+          })}
         </div>
         {isLoadingMore && <NetworkReportSkeleton />}
         {!reports.length && !isLoading && (

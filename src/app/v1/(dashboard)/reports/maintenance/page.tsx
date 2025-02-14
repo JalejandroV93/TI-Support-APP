@@ -3,181 +3,140 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
 import { MaintenanceReportSkeleton } from "@/components/skeletons/SkeletonsUI";
-import {
-  Clipboard,
-  MonitorSmartphone,
-  User,
-  Calendar,
-  Eye,
-} from "lucide-react";
+import { User } from "lucide-react";
 import { MaintenanceReport } from "@/types/maintenance";
 import useSWRInfinite from "swr/infinite";
-import { useCallback, useRef } from "react";
-import { ScrollArea } from "@/components/ui/scroll-area"; // Import ScrollArea
-import { Badge } from "@/components/ui/badge";
+import { useCallback, useRef, useMemo } from "react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import ReportCard, { ReportCardDetail } from "@/components/ReportCard"; // Import ReportCard
+import { debounce } from "@/lib/utils";
+
+
 const PAGE_SIZE = 10;
 
 const fetcher = async (url: string) => {
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error("Failed to fetch reports");
-  }
-  return res.json();
+    const res = await fetch(url);
+    if (!res.ok) {
+        throw new Error("Failed to fetch reports");
+    }
+    return res.json();
 };
 
-// Debounce function (utility)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function debounce<T extends (...args: any[]) => any>(
-  func: T,
-  wait: number
-): (...args: Parameters<T>) => void {
-  let timeout: ReturnType<typeof setTimeout> | null;
-  return function executedFunction(...args: Parameters<T>) {
-    const later = () => {
-      timeout = null;
-      func(...args);
-    };
-    if (timeout) clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
-  };
-}
 
 export default function MaintenanceReportsPage() {
-  const { data, error, size, setSize, isLoading } = useSWRInfinite(
-    (pageIndex) =>
-      `/api/v1/reports/maintenance?page=${pageIndex + 1}&pageSize=${PAGE_SIZE}`,
-    fetcher
-  );
+    const { data, error, size, setSize, isLoading } = useSWRInfinite(
+        (pageIndex) =>
+            `/api/v1/reports/maintenance?page=${pageIndex + 1}&pageSize=${PAGE_SIZE}`,
+        fetcher
+    );
 
-  const reports: MaintenanceReport[] = data
-    ? data.reduce((acc, val) => acc.concat(val.reports), [])
-    : [];
+    const reports = useMemo(
+      () => (data ? data.reduce((acc, val) => acc.concat(val.reports), []) : []),
+      [data]
+    ) as MaintenanceReport[]; // Type assertion.
 
-  const isLoadingMore =
-    isLoading || (size > 0 && data && typeof data[size - 1] === "undefined");
-  const isEmpty = data?.[0]?.reports.length === 0;
-  const isReachingEnd =
-    isEmpty || (data && data[data.length - 1]?.reports.length < PAGE_SIZE);
+    const isLoadingMore =
+        isLoading || (size > 0 && data && typeof data[size - 1] === "undefined");
+    const isEmpty = data?.[0]?.reports.length === 0;
+    const isReachingEnd =
+        isEmpty || (data && data[data.length - 1]?.reports.length < PAGE_SIZE);
 
-  // Debounced version of setSize.
-  const debouncedSetSize = useCallback(
-    (newSize: number) => {
-      const handler = debounce((size: number) => {
-        setSize(size);
-      }, 250); // 250ms debounce delay. Adjust as needed.
-      handler(newSize);
-    },
-    [setSize]
-  );
+    // Debounced version of setSize.
+    const debouncedSetSize = useCallback(
+        (newSize: number) => {
+            const handler = debounce((size: number) => {
+                setSize(size);
+            }, 250); // 250ms debounce delay. Adjust as needed.
+            handler(newSize);
+        },
+        [setSize]
+    );
 
-  const loadMore = useCallback(() => {
-    if (isLoadingMore || isReachingEnd) return;
-    debouncedSetSize(size + 1); // Use the debounced function.
-  }, [isLoadingMore, isReachingEnd, debouncedSetSize, size]);
+    const loadMore = useCallback(() => {
+        if (isLoadingMore || isReachingEnd) return;
+        debouncedSetSize(size + 1); // Use the debounced function.
+    }, [isLoadingMore, isReachingEnd, debouncedSetSize, size]);
 
-  // Intersection Observer for loading more.
-  const observer = useRef<IntersectionObserver | null>(null);
-  const lastReportRef = useCallback(
-    (node: HTMLDivElement) => {
-      if (isLoadingMore) return;
-      if (observer.current) observer.current.disconnect();
-      observer.current = new IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting && !isReachingEnd) {
-          loadMore();
-        }
-      });
-      if (node) observer.current.observe(node);
-    },
-    [isLoadingMore, isReachingEnd, loadMore]
-  );
+    // Intersection Observer for loading more.
+    const observer = useRef<IntersectionObserver | null>(null);
+    const lastReportRef = useCallback(
+        (node: HTMLDivElement) => {
+            if (isLoadingMore) return;
+            if (observer.current) observer.current.disconnect();
+            observer.current = new IntersectionObserver((entries) => {
+                if (entries[0].isIntersecting && !isReachingEnd) {
+                    loadMore();
+                }
+            });
+            if (node) observer.current.observe(node);
+        },
+        [isLoadingMore, isReachingEnd, loadMore]
+    );
 
-  if (error) return <div>Ocurrio un error al obtener los reportes.</div>;
-  return (
-    <div className="p-2">
-      <div className="flex justify-end items-center mb-4">
-        <Link href="/v1/reports/maintenance/create">
-          <Button>Agregar Reporte</Button>
-        </Link>
-      </div>
+    if (error) return <div>Ocurrio un error al obtener los reportes.</div>;
 
-      <ScrollArea className="h-[calc(100vh-280px)] w-[100%]">
-        {" "}
-        {/* Adjust height as needed */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {reports.map((report, index) => (
-            <Card
-              key={report.id}
-              ref={index === reports.length - 1 ? lastReportRef : undefined}
-              className="transition-transform duration-200 hover:scale-[1.02] hover:shadow-lg"
-            >
-              <CardHeader>
-                <CardTitle className="flex flex-row justify-between gap-2">
-                  <div className="flex flex-row gap-2 align-middle">
-                    <Clipboard className="w-5 h-5" />
-                    {report.numeroReporte}
-                  </div>
-                  <Badge>
-                    {report.tipoMantenimiento
-                      .toLowerCase()
-                      .charAt(0)
-                      .toUpperCase() +
-                      report.tipoMantenimiento.toLowerCase().slice(1)}
-                  </Badge>
-                </CardTitle>
-                <CardDescription className="flex items-center gap-2 text-sm">
-                  <Calendar className="w-4 h-4" />
-                  {format(new Date(report.fechaRegistro), "PPP", {
-                    locale: es,
-                  })}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-col gap-2 text-sm">
-                  <p className="flex items-center gap-2">
-                    <MonitorSmartphone className="w-4 h-4" />
-                    Equipo: {report.equipo}
-                  </p>
-                  {report.modelo && (
-                    <p className="ml-6">Serial: {report.modelo}</p>
-                  )}
-                  <div className="flex items-center gap-2">
-                    <User className="w-4 h-4" />
-                    {report.tecnico.charAt(0).toUpperCase() +
-                      report.tecnico.slice(1).toLowerCase()}
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter className="flex">
-                <Link
-                  className="w-full"
-                  href={`/v1/reports/maintenance/${report.id}/viewdetail`}
-                >
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    className="bg-red-700 text-white hover:bg-zinc-900 w-full"
-                  >
-                    <Eye className="w-4 h-4 mr-1" /> Ver
-                  </Button>
+    return (
+        <div className="p-2">
+            <div className="flex justify-end items-center mb-4">
+                <Link href="/v1/reports/maintenance/create">
+                    <Button>Agregar Reporte</Button>
                 </Link>
-              </CardFooter>
-            </Card>
-          ))}
+            </div>
+
+            <ScrollArea className="h-[calc(100vh-280px)] w-[100%]">
+                {" "}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {reports.map((report, index) => {
+                      const details: ReportCardDetail[] = [ // Corrected type here
+                            {
+                                label: "Equipo",
+                                value: report.equipo,
+                            },
+                            {
+                                label: "Técnico",
+                                value: (
+                                    <>
+                                        <User className="w-4 h-4 inline-block mr-1" />
+                                        {report.tecnico.charAt(0).toUpperCase() +
+                                            report.tecnico.slice(1).toLowerCase()}
+                                    </>
+                                ),
+                            },
+                        ];
+                        if (report.modelo) {
+                            details.push({ label: "Serial", value: report.modelo });
+                        }
+
+                        return (
+                            <ReportCard
+                                key={report.id}
+                                title={report.numeroReporte}
+                                date={report.fechaRegistro}
+                                subtitle={`Equipo: ${report.equipo}`}
+                                details={details}
+                                badgeText={
+                                    report.tipoMantenimiento.charAt(0).toUpperCase() +
+                                    report.tipoMantenimiento.slice(1).toLowerCase()
+                                }
+                                badgeVariant={
+                                    report.tipoMantenimiento === "CORRECTIVO"
+                                        ? "destructive"
+                                        : "secondary"
+                                }
+                                viewDetailHref={`/v1/reports/maintenance/${report.id}/viewdetail`}
+                                ref={
+                                    index === reports.length - 1 ? lastReportRef : undefined
+                                }
+                            />
+                        );
+                    })}
+                </div>
+                {isLoadingMore && <MaintenanceReportSkeleton />}
+                {!reports.length && !isLoading && (
+                    <p>No se encontraron reportes.</p>
+                )}
+            </ScrollArea>
         </div>
-        {isLoadingMore && <MaintenanceReportSkeleton />}
-        {!reports.length && !isLoading && <p>No se encontraron reportes.</p>}
-      </ScrollArea>
-    </div>
-  );
+    );
 }
