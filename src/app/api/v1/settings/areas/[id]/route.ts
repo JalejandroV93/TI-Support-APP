@@ -9,7 +9,6 @@ const areaUpdateSchema = z.object({
   descripcion: z.string().optional().nullable(), // Allow null
 });
 
-
 const parseId = (idParam: string): number | null => {
   const id = parseInt(idParam, 10);
   return isNaN(id) ? null : id;
@@ -17,25 +16,26 @@ const parseId = (idParam: string): number | null => {
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const currentUser = await getCurrentUser();
   if (!currentUser || currentUser.rol !== "ADMIN") {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
 
-  const areaId = parseId(params.id);
+  const { id } = await params;
+  const areaId = parseId(id);
   if (areaId === null) {
     return NextResponse.json({ error: "ID inválido" }, { status: 400 });
   }
 
   const area = await prisma.reporteArea.findUnique({
     where: { id: areaId },
-      select: {
-          id: true,
-          nombre: true,
-          descripcion: true,
-      },
+    select: {
+      id: true,
+      nombre: true,
+      descripcion: true,
+    },
   });
 
   if (!area) {
@@ -47,66 +47,80 @@ export async function GET(
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const currentUser = await getCurrentUser();
   if (!currentUser || currentUser.rol !== "ADMIN") {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
 
-  const areaId = parseId(params.id);
+  const { id } = await params;
+  const areaId = parseId(id);
   if (areaId === null) {
     return NextResponse.json({ error: "ID inválido" }, { status: 400 });
   }
 
   try {
-        const rawData = await request.json();
-        const data = areaUpdateSchema.parse(rawData); // Validate
+    const rawData = await request.json();
+    const data = areaUpdateSchema.parse(rawData); // Validate
 
-      const updatedArea = await prisma.reporteArea.update({
-          where: { id: areaId },
-          data: {
-            ...data,
-            descripcion: data.descripcion === null ? null : data.descripcion,
-          },
-        select: {
-            id: true,
-            nombre: true,
-            descripcion: true
-        }
-      });
+    const updatedArea = await prisma.reporteArea.update({
+      where: { id: areaId },
+      data: {
+        ...data,
+        descripcion: data.descripcion === null ? null : data.descripcion,
+      },
+      select: {
+        id: true,
+        nombre: true,
+        descripcion: true,
+      },
+    });
 
-      return NextResponse.json(updatedArea);
+    return NextResponse.json(updatedArea);
   } catch (error) {
     console.error("Error updating area:", error);
-        if (error instanceof z.ZodError) {
-        return NextResponse.json({ error: "Datos inválidos", details: error.errors }, { status: 400 });
-        }
-        return NextResponse.json({ error: "Error al actualizar el área" }, { status: 500 });
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: "Datos inválidos", details: error.errors },
+        { status: 400 }
+      );
+    }
+    return NextResponse.json(
+      { error: "Error al actualizar el área" },
+      { status: 500 }
+    );
   }
 }
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const currentUser = await getCurrentUser();
   if (!currentUser || currentUser.rol !== "ADMIN") {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
 
-  const areaId = parseId(params.id);
+  const { id } = await params;
+  const areaId = parseId(id);
   if (areaId === null) {
     return NextResponse.json({ error: "ID inválido" }, { status: 400 });
   }
 
-    try {
-      await prisma.reporteArea.delete({
-        where: { id: areaId },
-      });
-      return NextResponse.json({ success: true });
-    } catch (error) {
-      console.error("Error deleting area:", error);
-      return NextResponse.json({ error: "Error al eliminar el área. Asegúrate de que no existan reportes asociados a este área." }, { status: 500 }); // More helpful error
-    }
+  try {
+    await prisma.reporteArea.delete({
+      where: { id: areaId },
+    });
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Error deleting area:", error);
+    return NextResponse.json(
+      {
+        error:
+          "Error al eliminar el área. Asegúrate de que no existan reportes asociados a este área.",
+      },
+      { status: 500 }
+    ); // More helpful error
+  }
 }

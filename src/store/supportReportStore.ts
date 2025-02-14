@@ -1,4 +1,4 @@
-// src/store/supportReportStore.ts
+
 import { create } from "zustand";
 import { SupportReport, SupportReportFormState } from "@/types/support";
 
@@ -106,7 +106,7 @@ export const useSupportReportStore = create<SupportReportState>((set, get) => ({
         if (res.ok) {
           const data = await res.json(); // Expecting { reports: [], totalCount: number }
           set({ reports: data.reports, totalCount: data.totalCount }); // Update totalCount
-  
+
         } else {
           const errorData = await res.json();
           set({

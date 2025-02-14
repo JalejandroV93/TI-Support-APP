@@ -17,14 +17,15 @@ const parseId = (idParam: string): number | null => {
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const currentUser = await getCurrentUser();
   if (!currentUser || currentUser.rol !== "ADMIN") {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
 
-  const categoryId = parseId(params.id);
+  const {id}= await params;
+  const categoryId = parseId(id);
   if (categoryId === null) {
     return NextResponse.json({ error: "ID inválido" }, { status: 400 });
   }
@@ -47,14 +48,15 @@ export async function GET(
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const currentUser = await getCurrentUser();
   if (!currentUser || currentUser.rol !== "ADMIN") {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
 
-  const categoryId = parseId(params.id);
+  const {id}= await params;
+  const categoryId = parseId(id);
   if (categoryId === null) {
     return NextResponse.json({ error: "ID inválido" }, { status: 400 });
   }
@@ -88,14 +90,15 @@ export async function PUT(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const currentUser = await getCurrentUser();
   if (!currentUser || currentUser.rol !== "ADMIN") {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
 
-  const categoryId = parseId(params.id);
+  const {id}= await params;
+  const categoryId = parseId(id);
   if (categoryId === null) {
     return NextResponse.json({ error: "ID inválido" }, { status: 400 });
   }

@@ -1,4 +1,4 @@
-
+// src/components/support/SupportForm.tsx
 "use client";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -198,8 +198,8 @@ const SupportForm: React.FC<SupportFormProps> = ({
         <Switch
           checked={form.fueSolucionado}
           onCheckedChange={(checked) => {
-            handleSelectChange("fueSolucionado", checked);
-            setShowSolution(checked);
+            handleSelectChange("fueSolucionado", checked); //Now it accepts boolean
+            setShowSolution(checked);  // Control visibility
           }}
           id="fueSolucionado"
         />
