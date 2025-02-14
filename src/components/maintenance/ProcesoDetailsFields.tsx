@@ -15,7 +15,6 @@ const ProcesoDetailsFields: React.FC<ProcesoDetailsFieldsProps> = ({ form, error
         <>
             {form.tipoMantenimiento !== "CORRECTIVO" && (
                 <div className="space-y-2">
-                    <Label htmlFor="detallesProceso">Detalles del Proceso *</Label>
                     <Textarea
                         id="detallesProceso"
                         name="detallesProceso"

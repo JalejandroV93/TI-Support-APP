@@ -56,7 +56,7 @@ const EquipoDetailsFields: React.FC<EquipoDetailsFieldsProps> = ({ form, errors,
             </Select>
         </div>
         <div className="space-y-2">
-            <Label htmlFor="modelo">Modelo del equipo</Label>
+            <Label htmlFor="modelo">Serial del equipo</Label>
             <Input id="modelo" name="modelo" value={form.modelo ?? ''} onChange={handleChange} />
         </div>
 

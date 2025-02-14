@@ -147,11 +147,30 @@ enum Prioridad {
 }
 // 6. Reporte de Aulas Móviles
 model AulaMovilReport {
-  id        Int      @id @default(autoincrement())
-  userId    Int
-  fecha     DateTime @default(now())
-  tabletId  String? // Identificador opcional de la tablet
-  novedades String // Descripción de la novedad o incidencia
+  id              Int      @id @default(autoincrement())
+  numeroReporte   String   @unique @default("AM-")
+  userId          Int
+  fechaRegistro   DateTime @default(now())
+  fechaIncidente  DateTime  // Fecha del incidente (puede ser anterior)
+  tabletId        String?  // Identificador opcional de la tablet
+  novedades       String   // Descripción de la novedad o incidencia (obligatoria)
+  tipoNovedad     TipoNovedad // NUEVO: Tipo de novedad (instalación, daño, etc.)
+  estudiante      String?  // Nombre del estudiante (si aplica)
+  gradoEstudiante String?  // Grado del estudiante (si aplica)
+  observaciones   String?  // Observaciones adicionales (opcional)
 
   usuario Usuario @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([fechaIncidente])
+  @@index([tipoNovedad])
+}
+
+// NUEVO: Enum para tipo de novedad
+enum TipoNovedad {
+  INSTALACION_APP
+  DANIO_FISICO
+  FALLA_SOFTWARE
+  PERDIDA
+  OTRO
 }

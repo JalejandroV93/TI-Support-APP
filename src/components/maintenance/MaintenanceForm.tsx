@@ -121,7 +121,6 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
                 </CardHeader>
                 <CardContent>
                     <div className="space-y-2">
-                        <Label htmlFor="observaciones">Observaciones (Opcional)</Label>
                         <Textarea id="observaciones" name="observaciones" value={form.observaciones || ''} onChange={handleChange} />
                     </div>
                 </CardContent>

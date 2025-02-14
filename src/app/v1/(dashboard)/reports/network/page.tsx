@@ -191,16 +191,11 @@ export default function NetworkReportsPage() {
 
               <CardHeader>
                 <CardTitle className="flex flex-row gap-1 justify-between align-middle">
-                  <div className="flex flex-col gap-1">
-                    <span className="text-lg font-semibold">
-                      Reporte de Red
-                    </span>
-                    <div className="flex items-center gap-2 text-sm">
-                      <Clipboard className="w-5 h-5" />
-                      <span>{report.numeroReporte}</span>
-                    </div>
+                  <div className="flex flex-row gap-1">
+                    <Clipboard className="w-5 h-5" />
+                    <span>{report.numeroReporte}</span>
                   </div>
-                  <div className="mt-1">
+                  <div className="">
                     <Badge
                       className={` text-[10px] px-2 py-1 rounded ${
                         badgeClasses[getStatusVariant(report.estado)]
@@ -220,16 +215,22 @@ export default function NetworkReportsPage() {
                 </CardDescription>
               </CardHeader>
 
-              <CardContent className="space-y-2">
+              <CardContent className="space-y-1">
                 <p className="flex items-center gap-2 text-sm">
                   <User className="w-4 h-4" />
                   <span>{report.tecnico || "N/A"}</span>
                 </p>
                 <p className="text-sm">
-                  <span>{report.tipo}</span>
+                  Tipo de Reporte: <span>
+                    {report.tipo === "DANIO"
+                      ? "Daño"
+                      : report.tipo.charAt(0).toUpperCase() +
+                        report.tipo.slice(1).toLowerCase().replace("_", " ")}
+                  </span>
                 </p>
                 {/* Actualización rápida del estado */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center justify-between gap-2 text-sm">
+                  <p>Cambiar Estado: </p>
                   <Select
                     value={report.estado}
                     onValueChange={(newValue) =>
@@ -251,8 +252,12 @@ export default function NetworkReportsPage() {
               </CardContent>
 
               <CardFooter className="flex justify-end">
-                <Link href={`/v1/reports/network/${report.id}/viewdetail`}>
-                <Button size="sm" variant="secondary" className="bg-red-700 text-white hover:bg-zinc-900">
+                <Link className="w-full" href={`/v1/reports/network/${report.id}/viewdetail`}>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    className="bg-red-700 text-white hover:bg-zinc-900 min-w-full"
+                  >
                     <Eye className="w-4 h-4 mr-1" /> Ver
                   </Button>
                 </Link>

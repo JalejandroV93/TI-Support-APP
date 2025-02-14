@@ -7,7 +7,7 @@ import { useAuth } from "@/components/providers/AuthProvider";
 import MaintenanceForm from "@/components/maintenance/MaintenanceForm";
 import { FormState } from "@/types/maintenance";
 import { useMaintenanceReportStore } from "@/store/maintenanceReportStore";
-
+import { Button } from "@/components/ui/button";
 
 const initialState: FormState = {
     tipoEquipo: "OTRO",
@@ -115,24 +115,32 @@ const CreateMaintenanceReport = () => {
 
     return (
         <div className="container mx-auto p-4 space-y-6">
+            <div className="flex justify-between items-center">
             <h1 className="text-3xl font-bold">Generar Reporte de Mantenimiento</h1>
-            {useMaintenanceReportStore.getState().error && ( // Get error from Zustand
-                <Alert variant="destructive">
-                    <AlertTitle>Error</AlertTitle>
-                    <AlertDescription>{useMaintenanceReportStore.getState().error}</AlertDescription>
-                </Alert>
+            <Button
+                onClick={() => router.back()}
+                className=""
+            >
+                Volver
+            </Button>
+            </div>
+            {useMaintenanceReportStore.getState().error && (
+            <Alert variant="destructive">
+                <AlertTitle>Error</AlertTitle>
+                <AlertDescription>{useMaintenanceReportStore.getState().error}</AlertDescription>
+            </Alert>
             )}
 
             <MaintenanceForm
-                form={form}
-                errors={errors}
-                technicians={technicians}
-                handleChange={handleChange}
-                handleDateChange={handleDateChange}
-                handleSelectChange={handleSelectChange}
-                handleSubmit={handleSubmit}
-                isSubmitting={isSubmitting}
-                submitButtonText="Crear Reporte"
+            form={form}
+            errors={errors}
+            technicians={technicians}
+            handleChange={handleChange}
+            handleDateChange={handleDateChange}
+            handleSelectChange={handleSelectChange}
+            handleSubmit={handleSubmit}
+            isSubmitting={isSubmitting}
+            submitButtonText="Crear Reporte"
             />
         </div>
     );

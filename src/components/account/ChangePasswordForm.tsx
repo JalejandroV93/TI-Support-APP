@@ -58,7 +58,7 @@ export const ChangePasswordForm = ({
 
     setIsSaving(true);
     try {
-      const response = await fetch("/api/v1/account/change-password", {
+      const response = await fetch("/api/v1/users/account/change-password", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ currentPassword, newPassword }),

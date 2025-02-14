@@ -78,7 +78,7 @@ export const ProfileForm = ({
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Información de {userData?.nombre || "Usuario"}</CardTitle>
+          <CardTitle>Información de {userData?.nombre ? userData.nombre.charAt(0).toUpperCase() + userData.nombre.slice(1).toLowerCase() : "Usuario"}</CardTitle>
           <CardDescription>Actualiza tu información personal.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
