@@ -43,7 +43,9 @@ next-env.d.ts
 
 # package lock
 package-lock.json
-bun.lock
+
+*.lock
+*.lockb
 
 # dist folder
 dist

@@ -57,39 +57,36 @@ const NetworkForm: React.FC<NetworkFormProps> = ({
     }, [form.fueSolucionado]);
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Información del Incidente</CardTitle>
+          <CardTitle>Información General del Incidente</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <DatePickerField
             name="fechaIncidente"
-            label="Fecha del Incidente"
+            label="Fecha del Incidente *"
             value={form.fechaIncidente}
-            onChange={handleDateChange} // Corrected
+            onChange={handleDateChange}
             required
             error={errors.fechaIncidente}
           />
           <div className="space-y-2">
-            <Label htmlFor="ubicacion">Ubicación</Label>
-            <Input
-              id="ubicacion"
-              name="ubicacion"
-              value={form.ubicacion || ""}
-              onChange={handleChange}
-            />
-            {errors.ubicacion && (
-              <p className="text-red-500 text-sm">{errors.ubicacion}</p>
-            )}
+            <Label htmlFor="ubicacion">Ubicación *</Label>
+            <Input id="ubicacion" name="ubicacion" value={form.ubicacion || ""} onChange={handleChange} required />
+            {errors.ubicacion && <p className="text-red-500 text-sm">{errors.ubicacion}</p>}
           </div>
+        </CardContent>
+      </Card>
 
+      <Card>
+        <CardHeader>
+          <CardTitle>Detalles del Incidente</CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="tipo">Tipo de Incidente *</Label>
-            <Select
-              onValueChange={(value) => handleSelectChange("tipo", value)}
-              value={form.tipo}
-            >
+            <Select onValueChange={(value) => handleSelectChange("tipo", value)} value={form.tipo}>
               <SelectTrigger>
                 <SelectValue placeholder="Selecciona un tipo" />
               </SelectTrigger>
@@ -101,61 +98,55 @@ const NetworkForm: React.FC<NetworkFormProps> = ({
                 <SelectItem value="OTRO">Otro</SelectItem>
               </SelectContent>
             </Select>
-            {errors.tipo && (
-              <p className="text-red-500 text-sm">{errors.tipo}</p>
-            )}
+            {errors.tipo && <p className="text-red-500 text-sm">{errors.tipo}</p>}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="dispositivo">Dispositivo</Label>
+            <Label htmlFor="dispositivo">Dispositivo *</Label>
             <Input
               id="dispositivo"
               name="dispositivo"
               value={form.dispositivo || ""}
               onChange={handleChange}
+              required
             />
-            {errors.dispositivo && (
-              <p className="text-red-500 text-sm">{errors.dispositivo}</p>
-            )}
+            {errors.dispositivo && <p className="text-red-500 text-sm">{errors.dispositivo}</p>}
           </div>
+
           <div className="space-y-2">
             <Label htmlFor="prioridad">Prioridad *</Label>
-            <Select
-              onValueChange={(value) => handleSelectChange("prioridad", value)}
-              value={form.prioridad}
-            >
+            <Select onValueChange={(value) => handleSelectChange("prioridad", value)} value={form.prioridad}>
               <SelectTrigger>
                 <SelectValue placeholder="Selecciona un nivel de prioridad" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={"BAJA"}>Baja</SelectItem>
-                <SelectItem value={"MEDIA"}>Media</SelectItem>
-                <SelectItem value={"ALTA"}>Alta</SelectItem>
-                <SelectItem value={"URGENTE"}>Urgente</SelectItem>
+                <SelectItem value="BAJA">Baja</SelectItem>
+                <SelectItem value="MEDIA">Media</SelectItem>
+                <SelectItem value="ALTA">Alta</SelectItem>
+                <SelectItem value="URGENTE">Urgente</SelectItem>
               </SelectContent>
             </Select>
-            {errors.prioridad && (
-              <p className="text-red-500 text-sm">{errors.prioridad}</p>
-            )}
+            {errors.prioridad && <p className="text-red-500 text-sm">{errors.prioridad}</p>}
           </div>
+
           <TechnicianSelect
-                technicians={technicians}
-                value={form.tecnico || ""}
-                onChange={(value) => handleSelectChange("tecnico", value)}
-                error={errors.tecnico}
+            technicians={technicians}
+            value={form.tecnico || ""}
+            onChange={(value) => handleSelectChange("tecnico", value)}
+            error={errors.tecnico}
+          />
+
+          <div className="space-y-2 col-span-full">
+            <Label htmlFor="descripcion">Descripción</Label>
+            <Textarea
+              id="descripcion"
+              name="descripcion"
+              value={form.descripcion || ""}
+              onChange={handleChange}
+              rows={4}
             />
-           <div className="space-y-2 col-span-full">
-              <Label htmlFor="descripcion">Descripción (Opcional)</Label>
-              <Textarea
-                id="descripcion"
-                name="descripcion"
-                value={form.descripcion || ""}
-                onChange={handleChange}
-              />
-              {errors.descripcion && (
-                <p className="text-red-500 text-sm">{errors.descripcion}</p>
-              )}
-            </div>
+            {errors.descripcion && <p className="text-red-500 text-sm">{errors.descripcion}</p>}
+          </div>
         </CardContent>
       </Card>
 

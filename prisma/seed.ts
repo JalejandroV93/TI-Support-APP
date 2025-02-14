@@ -1,11 +1,12 @@
 // prisma/seed.ts
 import { PrismaClient, TipoNovedad } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import { faker } from '@faker-js/faker';
 
 const prisma = new PrismaClient();
 
 async function main() {
-  // --- Categorías de Soporte ---
+  // --- Categorías de Soporte (estáticas) ---
   const categories = [
     { nombre: "Hardware - Equipos de Escritorio", descripcion: "Problemas con computadoras de escritorio (CPU, monitores, periféricos)." },
     { nombre: "Hardware - Portátiles", descripcion: "Problemas específicos de computadoras portátiles (batería, pantalla, teclado, etc.)." },
@@ -41,7 +42,7 @@ async function main() {
   }
   console.log("Categorías de soporte creadas/actualizadas exitosamente.");
 
-  // --- Áreas de Reporte ---
+  // --- Áreas de Reporte (estáticas) ---
   const reportAreas = [
     { nombre: "Salón", descripcion: "Salas de clase regulares." },
     { nombre: "Oficinas", descripcion: "Oficinas administrativas." },
@@ -62,7 +63,7 @@ async function main() {
   console.log("Áreas de reporte creadas/actualizadas exitosamente.");
 
   // --- Usuarios ---
-  const hashedPassword = await bcrypt.hash("password123", 10); // ¡Recuerda usar una contraseña robusta en producción!
+  const hashedPassword = await bcrypt.hash("password123", 10); // Recuerda usar una contraseña robusta en producción
 
   const admin = await prisma.usuario.upsert({
     where: { username: 'admin' },
@@ -99,26 +100,43 @@ async function main() {
   for (let i = 0; i < 20; i++) {
     const user = allUsers[i % allUsers.length];
     const numeroReporte = `RM-${(i + 1).toString().padStart(4, "0")}`;
+    const fechaRecibido = faker.date.past();
+    const fechaEntrega = faker.datatype.boolean() ? faker.date.future() : null;
+    const tipoEquipo = faker.helpers.arrayElement(["Laptop", "Desktop", "Tablet", "Servidor"]);
+    const equipo = faker.commerce.productName();
+    const marca = faker.company.name();
+    const modelo = faker.vehicle.model();
+    const sistemaOp = faker.helpers.arrayElement(["Windows 10", "Ubuntu 20.04", "macOS Monterey", "Linux"]);
+    const procesador = faker.helpers.arrayElement(["Intel i5", "Intel i7", "AMD Ryzen 5", "AMD Ryzen 7"]);
+    const ramValue = faker.helpers.arrayElement(["8GB", "16GB", "32GB"]);
+    const ramCantidad = parseInt(ramValue);
+    const tipoMantenimiento = faker.helpers.arrayElement(["PREVENTIVO", "CORRECTIVO", "OTRO"]);
+    const diagnostico = faker.lorem.sentence();
+    const solucion = faker.datatype.boolean() ? faker.lorem.sentence() : null;
+    const observaciones = faker.datatype.boolean() ? faker.lorem.sentence() : null;
+    const tecnico = faker.person.fullName();
+    const detallesProceso = faker.datatype.boolean() ? faker.lorem.paragraph() : null;
+
     await prisma.mantenimientoReport.create({
       data: {
         numeroReporte,
         userId: user.id,
-        fechaRecibido: new Date(),
-        fechaEntrega: i % 3 === 0 ? new Date(Date.now() + 86400000) : null, // Algunos reportes tienen fecha de entrega
-        tipoEquipo: i % 2 === 0 ? "Laptop" : "Desktop",
-        equipo: `Equipo ${i + 1}`,
-        marca: i % 2 === 0 ? "Dell" : "HP",
-        modelo: `Modelo ${i + 1}`,
-        sistemaOp: i % 2 === 0 ? "Windows 10" : "Ubuntu 20.04",
-        procesador: i % 2 === 0 ? "Intel i5" : "AMD Ryzen 5",
-        ram: i % 2 === 0 ? "8GB" : "16GB",
-        ramCantidad: i % 2 === 0 ? 8 : 16,
-        tipoMantenimiento: i % 2 === 0 ? "PREVENTIVO" : "CORRECTIVO",
-        diagnostico: i % 2 === 0 ? `Diagnóstico ${i + 1}` : null,
-        solucion: i % 2 !== 0 ? `Solución ${i + 1}` : null,
-        observaciones: i % 2 !== 0 ? `Observaciones ${i + 1}` : null,
-        tecnico: `Tecnico ${i % 3 + 1}`, // Alterna entre distintos técnicos
-        detallesProceso: i % 2 !== 0 ? `Detalles del proceso ${i + 1}` : null,
+        fechaRecibido,
+        fechaEntrega,
+        tipoEquipo,
+        equipo,
+        marca,
+        modelo,
+        sistemaOp,
+        procesador,
+        ram: ramValue,
+        ramCantidad,
+        tipoMantenimiento,
+        diagnostico,
+        solucion,
+        observaciones,
+        tecnico,
+        detallesProceso,
       },
     });
   }
@@ -128,42 +146,68 @@ async function main() {
   for (let i = 0; i < 20; i++) {
     const user = allUsers[i % allUsers.length];
     const numeroReporte = `RR-${(i + 1).toString().padStart(4, "0")}`;
+    const fechaIncidente = faker.date.past();
+    const ubicacion = faker.datatype.boolean() ? faker.address.streetAddress() : null;
+    const tipo = faker.helpers.arrayElement(["DANIO", "CAMBIO", "REPARACION", "MANTENIMIENTO", "OTRO"]);
+    const descripcion = faker.lorem.sentence();
+    const dispositivo = faker.datatype.boolean() ? faker.helpers.arrayElement(["Router", "Switch", "Punto de Acceso", "Cableado"]) : null;
+    const direccionIP = faker.datatype.boolean() ? faker.internet.ip() : null;
+    const estado = faker.helpers.arrayElement(["ABIERTO", "EN_PROCESO", "RESUELTO", "CERRADO"]);
+    const prioridad = faker.helpers.arrayElement(["BAJA", "MEDIA", "ALTA", "URGENTE"]);
+    const tecnico = faker.datatype.boolean() ? faker.name.fullName() : null;
+    const notasTecnicas = faker.datatype.boolean() ? faker.lorem.sentence() : null;
+    const solucion = faker.datatype.boolean() ? faker.lorem.sentence() : null;
+    const fueSolucionado = faker.datatype.boolean();
+
     await prisma.redReport.create({
       data: {
         numeroReporte,
         userId: user.id,
-        fechaIncidente: new Date(Date.now() - i * 3600000), // Incidentes en el pasado
-        ubicacion: `Ubicación ${i + 1}`,
-        tipo: i % 2 === 0 ? "DANIO" : "REPARACION",
-        descripcion: `Incidente de red ${i + 1}`,
-        dispositivo: i % 2 === 0 ? "Router" : "Switch",
-        direccionIP: `192.168.1.${i + 1}`,
-        estado: i % 3 === 0 ? "ABIERTO" : (i % 3 === 1 ? "EN_PROCESO" : "RESUELTO"),
-        prioridad: i % 4 === 0 ? "URGENTE" : (i % 4 === 1 ? "ALTA" : (i % 4 === 2 ? "MEDIA" : "BAJA")),
-        tecnico: `Tecnico ${i % 3 + 1}`,
-        notasTecnicas: i % 2 === 0 ? `Notas técnicas ${i + 1}` : null,
-        solucion: i % 2 !== 0 ? `Solución aplicada ${i + 1}` : null,
+        fechaIncidente,
+        ubicacion,
+        tipo,
+        descripcion,
+        dispositivo,
+        direccionIP,
+        estado,
+        prioridad,
+        tecnico,
+        notasTecnicas,
+        solucion,
+        fueSolucionado,
       },
     });
   }
   console.log("Reportes de red creados exitosamente.");
 
   // --- Reportes de Aulas Móviles ---
-  const tiposNovedadArray = Object.values(TipoNovedad);
+  const tiposNovedad = ["INSTALACION_APP", "DANIO_FISICO", "FALLA_SOFTWARE", "PERDIDA", "OTRO"];
   for (let i = 0; i < 20; i++) {
     const user = allUsers[i % allUsers.length];
     const numeroReporte = `AM-${(i + 1).toString().padStart(4, "0")}`;
+    const fechaIncidente = faker.date.past();
+    const tabletId = faker.datatype.boolean() ? `Tablet-${faker.string.uuid()}` : null;
+    const novedades = faker.lorem.sentence();
+    const tipoNovedad = faker.helpers.arrayElement(tiposNovedad) as TipoNovedad;
+    const estudiante = faker.datatype.boolean() ? faker.name.firstName() : null;
+    const gradoEstudiante = faker.datatype.boolean() ? `Grado ${faker.number.int({ min: 1, max: 12 })}` : null;
+    const observaciones = faker.datatype.boolean() ? faker.lorem.sentence() : null;
+    const docente = faker.datatype.boolean() ? faker.name.fullName() : null;
+    const salon = faker.datatype.boolean() ? faker.helpers.arrayElement(["Aula 101", "Aula 202", "Laboratorio 3", "Salón 1"]) : null;
+
     await prisma.aulaMovilReport.create({
       data: {
         numeroReporte,
         userId: user.id,
-        fechaIncidente: new Date(Date.now() - i * 7200000), // Incidentes en el pasado
-        tabletId: i % 2 === 0 ? `Tablet-${i + 1}` : null,
-        novedades: `Novedad ${i + 1}`,
-        tipoNovedad: tiposNovedadArray[i % tiposNovedadArray.length],
-        estudiante: i % 3 === 0 ? `Estudiante ${i + 1}` : null,
-        gradoEstudiante: i % 3 === 0 ? `Grado ${i % 5 + 1}` : null,
-        observaciones: i % 2 !== 0 ? `Observaciones de aula móvil ${i + 1}` : null,
+        fechaIncidente,
+        tabletId,
+        novedades,
+        tipoNovedad,
+        estudiante,
+        gradoEstudiante,
+        observaciones,
+        docente,
+        salon,
       },
     });
   }
@@ -175,21 +219,33 @@ async function main() {
   for (let i = 0; i < 20; i++) {
     const user = allUsers[i % allUsers.length];
     const numeroReporte = `SS-${(i + 1).toString().padStart(4, "0")}`;
+    const categoria = allCategories[faker.number.int({ min: 0, max: allCategories.length - 1 })];
+    const reporteArea = allReportAreas[faker.number.int({ min: 0, max: allReportAreas.length - 1 })];
+    const tipoUsuario = faker.helpers.arrayElement(["DOCENTE", "ADMINISTRATIVO", "DIRECTIVO", "OTRO"]);
+    const nombrePersona = faker.datatype.boolean() ? faker.person.fullName() : null;
+    const ubicacionDetalle = faker.datatype.boolean() ? faker.address.streetAddress() : null;
+    const descripcion = faker.lorem.sentence();
+    const solucion = faker.datatype.boolean() ? faker.lorem.sentence() : null;
+    const estado = faker.helpers.arrayElement(["ABIERTO", "EN_PROCESO", "PENDIENTE_POR_TERCERO", "RESUELTO", "CERRADO"]);
+    const fueSolucionado = faker.datatype.boolean();
+    const notas = faker.datatype.boolean() ? faker.lorem.sentence() : null;
+    const fechaSolucion = faker.datatype.boolean() ? faker.date.future() : null;
+
     await prisma.soporteReport.create({
       data: {
         numeroReporte,
         userId: user.id,
-        categoriaId: allCategories[i % allCategories.length].id,
-        reporteAreaId: allReportAreas[i % allReportAreas.length].id,
-        tipoUsuario: i % 2 === 0 ? "DOCENTE" : "ADMINISTRATIVO",
-        nombrePersona: i % 2 === 0 ? `Persona ${i + 1}` : null,
-        ubicacionDetalle: i % 3 === 0 ? `Ubicación detallada ${i + 1}` : null,
-        descripcion: `Problema de soporte ${i + 1}`,
-        solucion: i % 3 === 1 ? `Solución implementada ${i + 1}` : null,
-        estado: i % 3 === 0 ? "ABIERTO" : (i % 3 === 1 ? "EN_PROCESO" : "RESUELTO"),
-        fueSolucionado: i % 2 === 0,
-        notas: i % 2 !== 0 ? `Notas técnicas ${i + 1}` : null,
-        fechaSolucion: i % 2 !== 0 ? new Date(Date.now() + 3600000) : null,
+        categoriaId: categoria.id,
+        reporteAreaId: reporteArea.id,
+        tipoUsuario,
+        nombrePersona,
+        ubicacionDetalle,
+        descripcion,
+        solucion,
+        estado,
+        fueSolucionado,
+        notas,
+        fechaSolucion,
       },
     });
   }
