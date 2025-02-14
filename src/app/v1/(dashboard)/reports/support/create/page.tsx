@@ -1,6 +1,6 @@
 // src/app/v1/(dashboard)/reports/support/create/page.tsx
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useAuth } from "@/components/providers/AuthProvider";
@@ -9,14 +9,12 @@ import { SupportReportFormState } from "@/types/support";
 import { useSupportReportStore } from "@/store/supportReportStore";
 import { Button } from "@/components/ui/button";
 import { SoporteEstado, TipoUsuario } from "@prisma/client";
-import { useReportAreaStore } from "@/store/reportAreaStore"; // Import the area store
-import { useCategoryStore } from "@/store/categoryStore"; // Import Category Store
+
 
 const initialState: SupportReportFormState = {
   categoriaId: 0, // Initialize as 0 or a valid default ID
   reporteAreaId: 0,
   descripcion: "",
-  //fecha: "", //removed
   tipoUsuario: TipoUsuario.OTRO,
   nombrePersona: "",
   ubicacionDetalle: "",
@@ -36,15 +34,6 @@ const CreateSupportReportPage = () => {
   const router = useRouter();
   const { createReport } = useSupportReportStore();
 
-  const { areas, fetchAreas } = useReportAreaStore(); // Get areas and fetchAreas
-  const { categories, fetchCategories } = useCategoryStore();
-
-    useEffect(() => {
-        fetchAreas();
-        fetchCategories();
-    }, [fetchAreas, fetchCategories]);
-
-
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -56,9 +45,7 @@ const CreateSupportReportPage = () => {
     setErrors((prevErrors) => ({ ...prevErrors, [name]: undefined }));
   };
 
-  // Remove handleDateChange
-
-  const handleSelectChange = (
+    const handleSelectChange = (
     name: keyof SupportReportFormState,
     value: string | number | boolean
   ) => {
@@ -94,22 +81,26 @@ const CreateSupportReportPage = () => {
     }
 
     if (!user) {
-      // toast.error("No se pudo obtener el usuario. Recarga la página e intenta de nuevo."); // Avoid direct toast in handleSubmit
+      //toast.error("No se pudo obtener el usuario. Recarga la página e intenta de nuevo."); // Avoid direct toast in handleSubmit
       setIsSubmitting(false);
       return;
     }
 
-    const success = await createReport(form);
+    const success = await createReport(form);  //CreateReport now returns a promise
     if (success) {
       router.push("/v1/reports/support");
       router.refresh(); // Consider if you really need to refresh here, if you're doing optimistic updates
-      setForm(initialState); // Reset form
-    } else {
-      // toast.error("Error al crear el reporte. Inténtalo de nuevo.");  // Avoid direct toast
+      setForm(initialState); // Reset form on success
     }
-
+    //Error handled in zustand store
     setIsSubmitting(false);
   };
+
+    const handleCancel = () => {
+        router.push("/v1/reports/support"); // Use router.push for navigation
+    };
+
+
 
   return (
     <div className="container mx-auto p-4 space-y-6">
@@ -132,8 +123,8 @@ const CreateSupportReportPage = () => {
         handleSelectChange={handleSelectChange}
         handleSubmit={handleSubmit}
         isSubmitting={isSubmitting}
-        categories={categories} // Pass categories here
-        areas={areas} // Pass areas
+        submitButtonText="Crear Reporte"
+        onCancel={handleCancel}
       />
     </div>
   );

@@ -1,43 +1,43 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // src/store/categoryStore.ts
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { create } from 'zustand';
 
 interface Category {
   id: number;
   nombre: string;
-  descripcion: string | null;
 }
 
 interface CategoryState {
-  categories: Category[];
-  loading: boolean;
+  categories: Category[] | null; // Use null for initial state
+  loading: boolean; // Added loading state
   error: string | null;
   fetchCategories: () => Promise<void>;
   createCategory: (category: { nombre: string, descripcion?: string }) => Promise<boolean>;
-  updateCategory: (id: number, category: { nombre?: string, descripcion?: string | null }) => Promise<boolean>;
+  updateCategory: (id: number, category: { nombre?: string; descripcion?: string | null; }) => Promise<boolean>;
   deleteCategory: (id: number) => Promise<boolean>;
 }
 
 export const useCategoryStore = create<CategoryState>((set) => ({
-  categories: [],
+  categories: null, // Initialize to null
   loading: false,
   error: null,
 
   fetchCategories: async () => {
-    set({ loading: true, error: null });
+    set({ loading: true, error: null }); // Set loading to true before fetching
     try {
-      const res = await fetch('/api/v1/settings/categories');
+      const res = await fetch('/api/v1/settings/categories/options'); // Use /options endpoint
       if (!res.ok) {
-        throw new Error("Failed to fetch categories");
+        const errorData = await res.json();
+        throw new Error(errorData.error ||"Failed to fetch categories");
       }
       const data = await res.json();
-      set({ categories: data, loading: false });
+      set({ categories: data, loading: false });  // Set loading to false
     } catch (error: any) {
-      set({ error: error.message, loading: false });
+      set({ error: error.message, loading: false }); // Set error and loading
     }
   },
 
-  createCategory: async (category) => {
+    createCategory: async (category) => {
     set({ loading: true, error: null });
     try {
       const res = await fetch('/api/v1/settings/categories', {
@@ -47,13 +47,15 @@ export const useCategoryStore = create<CategoryState>((set) => ({
       });
 
       if (!res.ok) {
-        throw new Error("Failed to create category");
+        const errorData = await res.json();
+        throw new Error(errorData.error ||"Failed to create category");
       }
-      const newCategory = await res.json();
-      set((state) => ({
-        categories: [...state.categories, newCategory],
-        loading: false,
-      }));
+    //   const newCategory = await res.json();
+    //   set((state) => ({
+    //     categories: [...state.categories, newCategory],
+    //     loading: false,
+    //   }));
+      set({ loading: false }) // Only update loading state
       return true;
     } catch (error: any) {
       set({ error: error.message, loading: false });
@@ -71,16 +73,18 @@ export const useCategoryStore = create<CategoryState>((set) => ({
       });
 
       if (!res.ok) {
-          throw new Error("Failed to update category");
+        const errorData = await res.json();
+        throw new Error(errorData.error ||"Failed to update category");
       }
-      const updatedCategory = await res.json();
+    //   const updatedCategory = await res.json();
 
-      set((state) => ({
-          categories: state.categories.map((c) =>
-          c.id === id ? updatedCategory : c
-          ),
-          loading: false,
-      }));
+    //   set((state) => ({
+    //       categories: state.categories.map((c) =>
+    //       c.id === id ? updatedCategory : c
+    //       ),
+    //       loading: false,
+    //   }));
+      set({ loading: false }) //Only update loading state
       return true;
     } catch (error: any) {
         set({ error: error.message, loading: false });
@@ -95,12 +99,15 @@ export const useCategoryStore = create<CategoryState>((set) => ({
         method: "DELETE",
       });
       if (!res.ok) {
-        throw new Error("Failed to delete category");
+        const errorData = await res.json();
+        throw new Error(errorData.error ||"Failed to delete category");
       }
-      set((state) => ({
-        categories: state.categories.filter((c) => c.id !== id),
-        loading: false,
-      }));
+      //Optimistic Update
+      // set((state) => ({
+      //   categories: state.categories.filter((c) => c.id !== id),
+      //   loading: false,
+      // }));
+      set({loading: false});
       return true;
     } catch (error:any) {
       set({ error: error.message, loading: false });

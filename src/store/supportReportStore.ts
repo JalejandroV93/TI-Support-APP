@@ -1,4 +1,5 @@
-
+// src/store/supportReportStore.ts
+// Remove fetchCategories and fetchAreas
 import { create } from "zustand";
 import { SupportReport, SupportReportFormState } from "@/types/support";
 
@@ -11,9 +12,9 @@ interface SupportReportState {
   deleteReport: (id: string) => Promise<boolean>;
     fetchReports: (page: number, pageSize: number) => Promise<void>;
   resetState: () => void;  // Method to reset to initial state
-  addReportToList: (report: SupportReport) => void;  //NEW
-  updateReportInList: (id: string, updatedReport: SupportReport) => void; //NEW
-  removeReportFromList: (id: string) => void; //NEW
+  addReportToList: (report: SupportReport) => void;
+  updateReportInList: (id: string, updatedReport: SupportReport) => void;
+  removeReportFromList: (id: string) => void;
 }
 
 export const useSupportReportStore = create<SupportReportState>((set, get) => ({
@@ -61,7 +62,6 @@ export const useSupportReportStore = create<SupportReportState>((set, get) => ({
 
       if (res.ok) {
           const updatedReport: SupportReport = await res.json(); // Assuming API returns the updated report
-
           get().updateReportInList(id, updatedReport);
 
         return true;
@@ -122,7 +122,7 @@ export const useSupportReportStore = create<SupportReportState>((set, get) => ({
     addReportToList: (report: SupportReport) => {
         set((state) => ({ reports: [report, ...state.reports] })); // Add new report to the beginning of the list
     },
-    
+
     updateReportInList: (id: string, updatedReport: SupportReport) => {
         set((state) => ({
           reports: state.reports.map((report) =>
@@ -130,11 +130,10 @@ export const useSupportReportStore = create<SupportReportState>((set, get) => ({
           ),
         }));
       },
-    
+
       removeReportFromList: (id: string) => {
         set((state) => ({
           reports: state.reports.filter((report) => report.id !== parseInt(id)),
         }));
       },
-
 }));
